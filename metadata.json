@@ -1,5 +1,5 @@
 {
-  "name": "Random Destination v2.6.0",
-  "description": "一个随机目的地大转盘，支持 AI 目的地洞察、预算估算及多列表管理。",
+  "name": "Random Destination Wheel v2.8.1",
+  "description": "一个随机目的地大转盘，支持省级、市级、县级抽签，AI 目的地洞察、收藏夹及多列表管理。",
   "requestFramePermissions": []
 }

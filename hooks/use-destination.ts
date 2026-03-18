@@ -1,4 +1,4 @@
-// hooks/use-destination.ts v2.6.0
+// hooks/use-destination.ts v2.8.1
 import * as React from "react"
 
 export type DestinationList = {
@@ -11,7 +11,7 @@ export type DestinationList = {
 export const PRESETS: DestinationList[] = [
   {
     id: "preset-provinces",
-    name: "全国省份",
+    name: "省级抽签 (全国省份)",
     items: [
       "北京", "天津", "河北", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", 
       "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", 
@@ -22,15 +22,31 @@ export const PRESETS: DestinationList[] = [
     isPreset: true
   },
   {
-    id: "preset-tier1",
-    name: "一线城市",
-    items: ["北京", "上海", "广州", "深圳"],
+    id: "preset-cities",
+    name: "市级抽签 (主要城市)",
+    items: [
+      "北京", "上海", "广州", "深圳", "成都", "重庆", "杭州", "西安", "武汉", "苏州",
+      "南京", "天津", "郑州", "长沙", "东莞", "佛山", "宁波", "青岛", "沈阳", "合肥",
+      "昆明", "福州", "无锡", "厦门", "哈尔滨", "长春", "南昌", "济南", "大连", "贵阳",
+      "温州", "石家庄", "泉州", "南宁", "金华", "常州", "珠海", "惠州", "嘉兴", "南通"
+    ],
     isPreset: true
   },
   {
-    id: "preset-popular",
-    name: "热门旅游城市",
-    items: ["成都", "重庆", "西安", "杭州", "三亚", "丽江", "厦门", "青岛", "大连", "桂林"],
+    id: "preset-counties",
+    name: "县级抽签 (特色县城)",
+    items: [
+      "阳朔县", "凤凰县", "婺源县", "大理市", "腾冲市", "敦煌市", "平遥县", "江孜县",
+      "亚丁县", "布尔津县", "塔什库尔干县", "理塘县", "墨脱县", "扎达县", "普兰县",
+      "康定市", "香格里拉市", "延吉市", "图们市", "珲春市", "满洲里市", "二连浩特市",
+      "瑞丽市", "河口县", "凭祥市", "东兴市", "漠河市", "抚远市", "黑河市", "伊宁市"
+    ],
+    isPreset: true
+  },
+  {
+    id: "preset-tier1",
+    name: "一线城市",
+    items: ["北京", "上海", "广州", "深圳"],
     isPreset: true
   }
 ]
@@ -54,7 +70,11 @@ export function useDestination() {
     if (savedLists) {
       try {
         const parsed = JSON.parse(savedLists)
-        if (Array.isArray(parsed) && parsed.length > 0) setLists(parsed)
+        if (Array.isArray(parsed)) {
+          // Filter out old presets and replace with current ones
+          const customLists = parsed.filter(l => !l.isPreset)
+          setLists([...PRESETS, ...customLists])
+        }
       } catch (e) {}
     }
     if (savedActiveId) setActiveListId(savedActiveId)

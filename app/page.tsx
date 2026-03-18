@@ -1,4 +1,4 @@
-// app/page.tsx v2.6.0
+// app/page.tsx v2.7.0
 "use client"
 
 import * as React from "react"
@@ -17,28 +17,6 @@ const locales = {
   "zh-CN": zhCN
 }
 
-const BUDGET_DATA: Record<string, { transport: number, accommodation: number, food: number }> = {
-  "北京": { transport: 1000, accommodation: 500, food: 200 },
-  "上海": { transport: 1000, accommodation: 600, food: 250 },
-  "广州": { transport: 800, accommodation: 400, food: 200 },
-  "深圳": { transport: 900, accommodation: 500, food: 200 },
-  "三亚": { transport: 1500, accommodation: 800, food: 300 },
-  "成都": { transport: 800, accommodation: 300, food: 150 },
-  "重庆": { transport: 800, accommodation: 300, food: 150 },
-  "杭州": { transport: 800, accommodation: 400, food: 200 },
-  "西安": { transport: 800, accommodation: 300, food: 150 },
-  "厦门": { transport: 1000, accommodation: 500, food: 200 },
-  "丽江": { transport: 1200, accommodation: 400, food: 150 },
-  "香港": { transport: 1500, accommodation: 800, food: 400 },
-  "澳门": { transport: 1200, accommodation: 800, food: 300 },
-  "台湾": { transport: 1500, accommodation: 500, food: 200 },
-  "西藏": { transport: 2000, accommodation: 400, food: 150 },
-  "新疆": { transport: 2000, accommodation: 400, food: 150 },
-  "海南": { transport: 1500, accommodation: 600, food: 250 },
-}
-
-const DEFAULT_BUDGET = { transport: 600, accommodation: 250, food: 150 }
-
 export default function Page() {
   const {
     lists, setLists, activeListId, setActiveListId, activeList,
@@ -49,8 +27,7 @@ export default function Page() {
   const t = locales[lang]
   
   const [winner, setWinner] = React.useState<string | null>(null)
-  const [travelDays, setTravelDays] = React.useState<number>(3)
-  const [destinationDetails, setDestinationDetails] = React.useState<{ intro: string; imageKeyword: string; link: string } | null>(null)
+  const [destinationDetails, setDestinationDetails] = React.useState<{ intro: string; link: string } | null>(null)
   const [isLoadingDetails, setIsLoadingDetails] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -71,17 +48,16 @@ export default function Page() {
       const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Provide a brief introduction (max 100 characters), a representative image search keyword, and a Wikipedia link for the city: ${winner}. Return in JSON format with keys: intro, imageKeyword, link. Language: ${lang === 'zh-CN' ? 'Chinese' : 'English'}.`,
+        contents: `Provide a brief introduction (max 100 characters) and a Wikipedia link for the city: ${winner}. Return in JSON format with keys: intro, link. Language: ${lang === 'zh-CN' ? 'Chinese' : 'English'}.`,
         config: {
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
             properties: {
               intro: { type: Type.STRING },
-              imageKeyword: { type: Type.STRING },
               link: { type: Type.STRING },
             },
-            required: ["intro", "imageKeyword", "link"],
+            required: ["intro", "link"],
           },
         },
       });
@@ -96,17 +72,6 @@ export default function Page() {
       setIsLoadingDetails(false)
     }
   }
-
-  const getBudget = (destination: string, days: number) => {
-    const budget = BUDGET_DATA[destination] || DEFAULT_BUDGET
-    const transport = budget.transport
-    const accommodation = budget.accommodation * days
-    const food = budget.food * days
-    const total = transport + accommodation + food
-    return { transport, accommodation, food, total }
-  }
-
-  const budgetInfo = winner ? getBudget(winner, travelDays) : null
 
   return (
     <div id="app-container" className="min-h-screen bg-background text-foreground flex flex-col">
@@ -153,7 +118,7 @@ export default function Page() {
             spinningText={t.spinning}
           />
           
-          {winner && budgetInfo && (
+          {winner && (
             <WinnerCard 
               t={t}
               winner={winner}
@@ -161,9 +126,6 @@ export default function Page() {
               toggleFavorite={toggleFavorite}
               isLoadingDetails={isLoadingDetails}
               destinationDetails={destinationDetails}
-              travelDays={travelDays}
-              setTravelDays={setTravelDays}
-              budgetInfo={budgetInfo}
               onClose={() => setWinner(null)}
             />
           )}
@@ -172,7 +134,7 @@ export default function Page() {
 
       <footer id="app-footer" className="py-6 border-t text-center text-xs text-muted-foreground">
         <div className="container mx-auto px-4">
-          <p>© 2026 Random Destination Wheel v2.6.0. All rights reserved.</p>
+          <p>© 2026 Random Destination Wheel v2.7.0. All rights reserved.</p>
         </div>
       </footer>
     </div>

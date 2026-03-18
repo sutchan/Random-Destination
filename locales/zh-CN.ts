@@ -1,4 +1,4 @@
-// locales/zh-CN.ts v2.5.0
+// locales/zh-CN.ts v2.7.0
 const zhCN = {
   title: "随机目的地大转盘",
   shortTitle: "目的地转盘",
@@ -27,18 +27,11 @@ const zhCN = {
   spinning: "转动中...",
   startSpin: "开始抽取",
   destinySays: "天意让你去：",
-  travelDays: "计划旅行天数",
-  budgetEstimate: "预估总预算",
-  transport: "交通",
-  accommodation: "住宿",
-  food: "餐饮",
   viewDetails: "查看详情",
   close: "关闭",
   loading: "加载中...",
   spinResult: "转盘结果",
   aiThinking: "AI 正在为你生成旅行建议...",
-  travelBudget: "预计旅行预算",
-  totalBudget: "预估总预算",
   recommended: "强烈推荐",
   aiPowered: "由 Gemini 3 Flash 提供动力",
   readyToExplore: "准备好探索了吗？",

@@ -1,4 +1,4 @@
-// locales/en.ts v2.5.0
+// locales/en.ts v2.7.0
 const en = {
   title: "Random Destination Wheel",
   shortTitle: "Dest. Wheel",
@@ -27,18 +27,11 @@ const en = {
   spinning: "Spinning...",
   startSpin: "Spin Now",
   destinySays: "Destiny says you go to:",
-  travelDays: "Travel Days",
-  budgetEstimate: "Total Budget",
-  transport: "Transport",
-  accommodation: "Accomm.",
-  food: "Food",
   viewDetails: "View Details",
   close: "Close",
   loading: "Loading...",
   spinResult: "Spin Result",
   aiThinking: "AI is generating travel tips for you...",
-  travelBudget: "Estimated Travel Budget",
-  totalBudget: "Total Estimated Budget",
   recommended: "Highly Recommended",
   aiPowered: "Powered by Gemini 3 Flash",
   readyToExplore: "Ready to Explore?",
