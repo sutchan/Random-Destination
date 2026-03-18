@@ -1,34 +1,34 @@
-# Random Destination Wheel v2.5.0
+# 随机目的地大转盘 v2.9.0
 
-[中文版本](./README_CN.md)
+[English Version](./README_EN.md)
 
-A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites.
+一个可自定义的旋转转盘，用于抽取随机旅游目的地，并提供 AI 驱动的见解、历史记录和收藏功能。
 
-## Features
+## 功能特点
 
-- **Customizable Wheel**: Add your own destinations or use presets.
-- **AI Insights**: Get brief introductions and image previews for your winning destination.
-- **Budget Estimation**: Estimate travel costs based on destination and duration.
-- **History & Favorites**: Keep track of your spins and save your favorite spots.
-- **Responsive Design**: Optimized for mobile, tablet, and desktop.
-- **Dark Mode**: Supports system theme and manual toggle.
+- **可自定义转盘**: 添加你自己的目的地或使用预设列表。
+- **AI 见解**: 为抽中的目的地获取简要介绍和图片预览。
+- **预算预估**: 根据目的地和旅行天数估算旅行费用。
+- **历史与收藏**: 记录你的抽取历史并保存心仪的地点。
+- **响应式设计**: 针对手机、平板和桌面端进行了优化。
+- **深色模式**: 支持系统主题和手动切换。
 
-## Tech Stack
+## 技术栈
 
-- **Framework**: Next.js 15+ (App Router)
-- **Styling**: Tailwind CSS
-- **Animations**: Motion (framer-motion)
+- **框架**: Next.js 15+ (App Router)
+- **样式**: Tailwind CSS
+- **动画**: Motion (framer-motion)
 - **AI**: Google Gemini 3 Flash
-- **Icons**: Lucide React
-- **Components**: shadcn/ui
+- **图标**: Lucide React
+- **组件库**: shadcn/ui
 
-## Getting Started
+## 快速开始
 
-1. Clone the repository.
-2. Install dependencies: `npm install`.
-3. Set up your environment variables in `.env`.
-4. Run the development server: `npm run dev`.
+1. 克隆仓库。
+2. 安装依赖: `npm install`。
+3. 在 `.env` 中设置环境变量。
+4. 启动开发服务器: `npm run dev`。
 
-## License
+## 开源协议
 
 MIT
