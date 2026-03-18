@@ -1,4 +1,4 @@
-# Random Destination Wheel v3.1.0
+# Random Destination Wheel v3.4.0 | Data v1.4.0
 
 [中文版本](./README.md)
 

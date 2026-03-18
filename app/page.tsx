@@ -1,4 +1,4 @@
-// app/page.tsx v3.1.0
+// app/page.tsx v3.4.0
 "use client"
 
 import * as React from "react"
@@ -212,7 +212,7 @@ export default function Page() {
 
       <footer id="app-footer" className="py-6 border-t text-center text-xs text-muted-foreground">
         <div className="container mx-auto px-4">
-          <p>© 2026 Random Destination Wheel v3.1.0. All rights reserved.</p>
+          <p>© 2026 Random Destination Wheel v3.4.0 | Data v1.4.0. All rights reserved.</p>
         </div>
       </footer>
     </div>

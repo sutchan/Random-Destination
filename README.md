@@ -1,4 +1,4 @@
-# 随机目的地大转盘 v3.1.0
+# 随机目的地大转盘 v3.4.0 | 数据 v1.4.0
 
 [English Version](./README_EN.md)
 
