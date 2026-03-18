@@ -1,5 +1,5 @@
 {
-  "name": "Random Destination",
+  "name": "Random Destination v2.6.0",
   "description": "一个随机目的地大转盘，支持 AI 目的地洞察、预算估算及多列表管理。",
   "requestFramePermissions": []
 }
