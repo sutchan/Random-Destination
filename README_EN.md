@@ -1,11 +1,12 @@
-# Random Destination Wheel v2.9.0
+# Random Destination Wheel v3.1.0
 
 [中文版本](./README.md)
 
-A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites.
+A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites. Supports hierarchical spinning (Province > City > County).
 
 ## Features
 
+- **Hierarchical Spinning**: Spin for a Province, then drill down to City and County levels.
 - **Customizable Wheel**: Add your own destinations or use presets.
 - **AI Insights**: Get brief introductions and image previews for your winning destination.
 - **Budget Estimation**: Estimate travel costs based on destination and duration.

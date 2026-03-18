@@ -1,5 +1,5 @@
 {
-  "name": "Random Destination Wheel v2.9.0",
-  "description": "一个支持 PWA、音效、省级/市级/县级抽签的随机目的地大转盘。",
+  "name": "Random Destination Wheel v3.1.0",
+  "description": "支持 PWA、音效、省级/市级/县级层级抽签的随机目的地大转盘。",
   "requestFramePermissions": []
 }

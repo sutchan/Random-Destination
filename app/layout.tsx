@@ -1,4 +1,4 @@
-// app/layout.tsx v2.5.0
+// app/layout.tsx v3.1.0
 import type {Metadata, Viewport} from 'next';
 import './globals.css'; // Global styles
 import { ThemeProvider } from "@/components/theme-provider"
@@ -19,8 +19,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Random Destination Wheel v2.9.0 | 随机目的地大转盘',
-  description: 'A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites.',
+  title: 'Random Destination Wheel v3.1.0 | 随机目的地大转盘',
+  description: 'A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites. Supports hierarchical spinning (Province > City > County).',
   keywords: ['travel', 'destination', 'wheel', 'random', 'AI', 'travel guide', 'budget', '旅游', '目的地', '转盘', '随机', '人工智能'],
   authors: [{ name: 'Sut' }],
   manifest: '/manifest.json',

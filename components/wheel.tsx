@@ -1,8 +1,8 @@
-// components/wheel.tsx v2.9.0
+// components/wheel.tsx v3.1.0
 "use client"
 
 import * as React from "react"
-import { motion, useAnimation } from "motion/react"
+import { motion, useAnimation, useMotionValue, animate } from "motion/react"
 import { MapPin } from "lucide-react"
 
 interface WheelProps {
@@ -15,55 +15,67 @@ interface WheelProps {
 
 export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPINNING...", id }: WheelProps) {
   const [isSpinning, setIsSpinning] = React.useState(false)
-  const controls = useAnimation()
-  const [rotation, setRotation] = React.useState(0)
+  const rotationValue = useMotionValue(0)
+  const [displayRotation, setDisplayRotation] = React.useState(0)
+  const [pointerJitter, setPointerJitter] = React.useState(0)
   
   // Audio refs
-  const spinAudioRef = React.useRef<HTMLAudioElement | null>(null)
+  const tickAudioRef = React.useRef<HTMLAudioElement | null>(null)
   const winAudioRef = React.useRef<HTMLAudioElement | null>(null)
+  const lastTickRef = React.useRef<number>(0)
 
   React.useEffect(() => {
     // Initialize audio on client side
-    spinAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3")
+    tickAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/133/133-preview.mp3")
     winAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3")
     
-    if (spinAudioRef.current) spinAudioRef.current.loop = true
+    if (tickAudioRef.current) {
+      tickAudioRef.current.volume = 0.5
+    }
   }, [])
 
   const spin = async () => {
     if (isSpinning || items.length === 0) return
     setIsSpinning(true)
     
-    // Play spin sound
-    if (spinAudioRef.current) {
-      spinAudioRef.current.currentTime = 0
-      spinAudioRef.current.play().catch(() => {})
-    }
-
-    const spinDuration = 4 // seconds
-    const extraSpins = 5 // full rotations
+    const spinDuration = 8 // seconds
+    const extraSpins = 10 // full rotations
     const randomSegment = Math.floor(Math.random() * items.length)
     
     const segmentAngle = 360 / items.length
+    const currentRotation = rotationValue.get()
     
-    // Calculate target rotation to land exactly in the middle of the chosen segment
-    const targetRotation = rotation + (360 * extraSpins) + (360 - (randomSegment * segmentAngle + segmentAngle / 2)) - (rotation % 360)
+    // Calculate target rotation
+    const targetRotation = currentRotation + (360 * extraSpins) + (360 - (randomSegment * segmentAngle + segmentAngle / 2)) - (currentRotation % 360)
 
-    await controls.start({
-      rotate: targetRotation,
-      transition: { duration: spinDuration, ease: [0.2, 0.8, 0.2, 1] } // custom ease out
+    lastTickRef.current = Math.floor(currentRotation / segmentAngle)
+
+    await animate(rotationValue, targetRotation, {
+      duration: spinDuration,
+      ease: [0.2, 0.8, 0.2, 1],
+      onUpdate: (v) => {
+        setDisplayRotation(v)
+        const currentTick = Math.floor(v / segmentAngle)
+        if (currentTick !== lastTickRef.current) {
+          if (tickAudioRef.current) {
+            const sound = tickAudioRef.current.cloneNode() as HTMLAudioElement
+            sound.volume = 0.3
+            sound.play().catch(() => {})
+          }
+          lastTickRef.current = currentTick
+          // Add pointer jitter
+          setPointerJitter(prev => prev === 5 ? -5 : 5)
+          setTimeout(() => setPointerJitter(0), 50)
+        }
+      }
     })
 
-    // Stop spin sound and play win sound
-    if (spinAudioRef.current) {
-      spinAudioRef.current.pause()
-    }
+    // Play win sound
     if (winAudioRef.current) {
       winAudioRef.current.currentTime = 0
       winAudioRef.current.play().catch(() => {})
     }
 
-    setRotation(targetRotation)
     setIsSpinning(false)
     onSpinEnd(items[randomSegment])
   }
@@ -80,17 +92,23 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
   return (
     <div id="wheel-container" className="relative flex flex-col items-center w-full">
       {/* Pointer */}
-      <div id="wheel-pointer" className="absolute top-0 z-10 -mt-4 drop-shadow-md">
-        <MapPin className="w-8 h-8 md:w-10 md:h-10 fill-primary text-primary-foreground rotate-180" />
-      </div>
+      <motion.div 
+        id="wheel-pointer" 
+        className="absolute top-0 z-20 -mt-4 drop-shadow-xl"
+        animate={{ rotate: pointerJitter }}
+        transition={{ type: "spring", stiffness: 500, damping: 15 }}
+      >
+        <MapPin className="w-10 h-10 md:w-12 md:h-12 fill-primary text-primary-foreground rotate-180" />
+      </motion.div>
 
-      <div id="wheel-outer" className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] aspect-square rounded-full overflow-hidden border-4 md:border-8 border-primary shadow-2xl bg-muted">
+      <div id="wheel-outer" className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] aspect-square rounded-full overflow-hidden border-4 md:border-12 border-primary shadow-[0_0_50px_rgba(0,0,0,0.2)] bg-muted">
+        {/* Glossy Overlay */}
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-white/20 via-transparent to-black/10 rounded-full" />
+        
         <motion.div 
           id="wheel-spinning-part"
           className="w-full h-full"
-          animate={controls}
-          initial={{ rotate: 0 }}
-          style={{ originX: 0.5, originY: 0.5 }}
+          style={{ rotate: displayRotation, originX: 0.5, originY: 0.5 }}
         >
           <svg viewBox="0 0 300 300" className="w-full h-full">
             {items.length === 0 ? (
@@ -157,13 +175,18 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
             )}
           </svg>
         </motion.div>
+
+        {/* Center Cap */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 bg-primary rounded-full z-20 shadow-lg border-4 border-primary-foreground/20 flex items-center justify-center">
+          <div className="w-2 h-2 md:w-3 md:h-3 bg-primary-foreground rounded-full opacity-50" />
+        </div>
       </div>
 
       <button 
         id="btn-spin"
         onClick={spin}
         disabled={isSpinning || items.length === 0}
-        className="mt-8 px-8 md:px-12 py-3 md:py-4 bg-primary text-primary-foreground rounded-full font-black text-lg md:text-2xl shadow-xl hover:bg-primary/90 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 uppercase tracking-widest"
+        className="mt-8 px-10 md:px-16 py-4 md:py-5 bg-primary text-primary-foreground rounded-full font-black text-xl md:text-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:bg-primary/90 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 uppercase tracking-widest border-b-4 border-black/20"
       >
         {isSpinning ? spinningText : spinText}
       </button>

@@ -1,4 +1,4 @@
-// hooks/use-destination.ts v2.8.1
+// hooks/use-destination.ts v3.0.0
 import * as React from "react"
 
 export type DestinationList = {
@@ -11,7 +11,7 @@ export type DestinationList = {
 export const PRESETS: DestinationList[] = [
   {
     id: "preset-provinces",
-    name: "省级抽签 (全国省份)",
+    name: "中国行政区划 (省/市/县)",
     items: [
       "北京", "天津", "河北", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", 
       "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", 
