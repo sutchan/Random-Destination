@@ -1,11 +1,34 @@
-<div align="center">
+# Random Destination Wheel v2.5.0
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+[中文版本](./README_CN.md)
 
-  <h1>Built with AI Studio</h2>
+A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Features
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+- **Customizable Wheel**: Add your own destinations or use presets.
+- **AI Insights**: Get brief introductions and image previews for your winning destination.
+- **Budget Estimation**: Estimate travel costs based on destination and duration.
+- **History & Favorites**: Keep track of your spins and save your favorite spots.
+- **Responsive Design**: Optimized for mobile, tablet, and desktop.
+- **Dark Mode**: Supports system theme and manual toggle.
 
-</div>
+## Tech Stack
+
+- **Framework**: Next.js 15+ (App Router)
+- **Styling**: Tailwind CSS
+- **Animations**: Motion (framer-motion)
+- **AI**: Google Gemini 3 Flash
+- **Icons**: Lucide React
+- **Components**: shadcn/ui
+
+## Getting Started
+
+1. Clone the repository.
+2. Install dependencies: `npm install`.
+3. Set up your environment variables in `.env`.
+4. Run the development server: `npm run dev`.
+
+## License
+
+MIT
