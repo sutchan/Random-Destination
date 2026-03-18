@@ -1,0 +1,40 @@
+{
+  "name": "Random Destination Wheel",
+  "short_name": "Dest. Wheel",
+  "description": "A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "categories": ["travel", "utilities"],
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/wheel-icon/192/192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://picsum.photos/seed/wheel-icon/512/512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://picsum.photos/seed/wheel-ss1/1080/1920",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Home Screen"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Spin Now",
+      "url": "/",
+      "icons": [{ "src": "https://picsum.photos/seed/spin-shortcut/96/96", "sizes": "96x96" }]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-// components/wheel.tsx v2.5.0
+// components/wheel.tsx v2.9.0
 "use client"
 
 import * as React from "react"
@@ -17,10 +17,28 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
   const [isSpinning, setIsSpinning] = React.useState(false)
   const controls = useAnimation()
   const [rotation, setRotation] = React.useState(0)
+  
+  // Audio refs
+  const spinAudioRef = React.useRef<HTMLAudioElement | null>(null)
+  const winAudioRef = React.useRef<HTMLAudioElement | null>(null)
+
+  React.useEffect(() => {
+    // Initialize audio on client side
+    spinAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3")
+    winAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3")
+    
+    if (spinAudioRef.current) spinAudioRef.current.loop = true
+  }, [])
 
   const spin = async () => {
     if (isSpinning || items.length === 0) return
     setIsSpinning(true)
+    
+    // Play spin sound
+    if (spinAudioRef.current) {
+      spinAudioRef.current.currentTime = 0
+      spinAudioRef.current.play().catch(() => {})
+    }
 
     const spinDuration = 4 // seconds
     const extraSpins = 5 // full rotations
@@ -35,6 +53,15 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
       rotate: targetRotation,
       transition: { duration: spinDuration, ease: [0.2, 0.8, 0.2, 1] } // custom ease out
     })
+
+    // Stop spin sound and play win sound
+    if (spinAudioRef.current) {
+      spinAudioRef.current.pause()
+    }
+    if (winAudioRef.current) {
+      winAudioRef.current.currentTime = 0
+      winAudioRef.current.play().catch(() => {})
+    }
 
     setRotation(targetRotation)
     setIsSpinning(false)
