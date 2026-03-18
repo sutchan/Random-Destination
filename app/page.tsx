@@ -155,6 +155,7 @@ export default function Page() {
             }
           }}
           onUpdateListName={(name) => setLists(lists.map(l => l.id === activeListId ? { ...l, name } : l))}
+          chinaRegions={CHINA_REGIONS}
         />
       </AppHeader>
 

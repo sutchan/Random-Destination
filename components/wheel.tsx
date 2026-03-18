@@ -98,7 +98,7 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
         animate={{ rotate: pointerJitter }}
         transition={{ type: "spring", stiffness: 500, damping: 15 }}
       >
-        <MapPin className="w-10 h-10 md:w-12 md:h-12 fill-primary text-primary-foreground rotate-180" />
+        <MapPin className="w-10 h-10 md:w-12 md:h-12 fill-primary text-primary-foreground" />
       </motion.div>
 
       <div id="wheel-outer" className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] aspect-square rounded-full overflow-hidden border-4 md:border-12 border-primary shadow-[0_0_50px_rgba(0,0,0,0.2)] bg-muted">
@@ -149,7 +149,7 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
                 ].join(" ")
 
                 const textAngle = startAngle + angle / 2
-                const textRadius = radius * 0.65
+                const textRadius = radius * 0.85
                 const textX = (center + textRadius * Math.sin(Math.PI * textAngle / 180)).toFixed(3)
                 const textY = (center - textRadius * Math.cos(Math.PI * textAngle / 180)).toFixed(3)
                 const rotationAngle = (textAngle - 90).toFixed(3)
