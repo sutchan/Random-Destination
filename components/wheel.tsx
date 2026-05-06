@@ -26,12 +26,18 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
 
   React.useEffect(() => {
     // Initialize audio on client side
-    tickAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/133/133-preview.mp3")
-    winAudioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3")
+    const tickAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/133/133-preview.mp3")
+    const winAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3")
     
-    if (tickAudioRef.current) {
-      tickAudioRef.current.volume = 0.5
-    }
+    // Preload audio
+    tickAudio.load()
+    winAudio.load()
+    
+    tickAudio.volume = 0.5
+    winAudio.volume = 0.7
+    
+    tickAudioRef.current = tickAudio
+    winAudioRef.current = winAudio
   }, [])
 
   const spin = async () => {
@@ -57,23 +63,38 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
         setDisplayRotation(v)
         const currentTick = Math.floor(v / segmentAngle)
         if (currentTick !== lastTickRef.current) {
+          // Play tick sound
           if (tickAudioRef.current) {
-            const sound = tickAudioRef.current.cloneNode() as HTMLAudioElement
-            sound.volume = 0.3
-            sound.play().catch(() => {})
+            try {
+              // Create a new audio instance for each tick
+              const tickSound = new Audio(tickAudioRef.current.src)
+              tickSound.volume = 0.3
+              tickSound.play().catch(() => {
+                // Ignore audio play errors
+              })
+            } catch (e) {
+              // Ignore audio errors
+            }
           }
           lastTickRef.current = currentTick
           // Add pointer jitter
           setPointerJitter(prev => prev === 5 ? -5 : 5)
           setTimeout(() => setPointerJitter(0), 50)
         }
-      }
+      },
     })
 
     // Play win sound
     if (winAudioRef.current) {
-      winAudioRef.current.currentTime = 0
-      winAudioRef.current.play().catch(() => {})
+      try {
+        const winSound = new Audio(winAudioRef.current.src)
+        winSound.volume = 0.7
+        winSound.play().catch(() => {
+          // Ignore audio play errors
+        })
+      } catch (e) {
+        // Ignore audio errors
+      }
     }
 
     setIsSpinning(false)

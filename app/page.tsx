@@ -63,18 +63,10 @@ export default function Page() {
     }
   }, [activeListId, drillDownPath.length])
 
-  const handleSpinEnd = async (winnerName: string) => {
-    setWinner(winnerName)
-    addHistory(winnerName)
+  const fetchDestinationDetails = async (winnerName: string) => {
     setDestinationDetails(null)
     setIsLoadingDetails(true)
     setError(null)
-
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    })
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
@@ -101,9 +93,25 @@ export default function Page() {
     } catch (e) {
       console.error("Failed to fetch destination details", e);
       setError(lang === 'zh-CN' ? "获取目的地详情失败。" : "Failed to fetch details.");
+      throw e;
     } finally {
       setIsLoadingDetails(false)
     }
+  };
+
+  const handleSpinEnd = async (winnerName: string) => {
+    setWinner(winnerName)
+    addHistory(winnerName)
+
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    })
+
+    await fetchDestinationDetails(winnerName).catch(() => {
+      // Error already handled in fetchDestinationDetails
+    });
   }
 
   const handleDrillDown = () => {
@@ -194,6 +202,8 @@ export default function Page() {
                 isLoadingDetails={isLoadingDetails}
                 destinationDetails={destinationDetails}
                 onClose={() => setWinner(null)}
+                error={error}
+                onRetry={() => winner && fetchDestinationDetails(winner)}
               />
               
               {canDrillDown && (

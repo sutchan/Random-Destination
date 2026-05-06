@@ -19,11 +19,13 @@ interface WinnerCardProps {
   isLoadingDetails: boolean
   destinationDetails: { intro: string; link: string } | null
   onClose: () => void
+  onRetry?: () => void
+  error?: string | null
 }
 
 export function WinnerCard({
   t, winner, favorites, toggleFavorite, isLoadingDetails, destinationDetails,
-  onClose
+  onClose, onRetry, error
 }: WinnerCardProps) {
   return (
     <Card id="winner-card" className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500 shadow-2xl overflow-hidden border-primary/10 bg-background/60 backdrop-blur-xl relative">
@@ -51,6 +53,17 @@ export function WinnerCard({
         {isLoadingDetails ? (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+          </div>
+        ) : error ? (
+          <div className="px-6 py-4 space-y-3">
+            <p className="text-base text-destructive italic leading-relaxed font-medium">
+              {error}
+            </p>
+            {onRetry && (
+              <Button variant="outline" size="sm" onClick={onRetry} className="text-sm">
+                {t.retry}
+              </Button>
+            )}
           </div>
         ) : destinationDetails && (
           <div className="px-6 py-2">
