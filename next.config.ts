@@ -1,13 +1,13 @@
 // next.config.ts v2.9.0
 import type {NextConfig} from 'next';
-const withPWA = require('next-pwa')({
+import withPWA from 'next-pwa';
+
+const nextConfig: NextConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-});
-
-const nextConfig: NextConfig = {
+})({
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
-    // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+    // Do not modify—file watching is disabled to prevent flickering during agent edits.
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,
@@ -38,6 +38,6 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
-};
+});
 
-module.exports = withPWA(nextConfig);
+export default nextConfig;
