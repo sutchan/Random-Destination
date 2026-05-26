@@ -19,26 +19,9 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
   const [displayRotation, setDisplayRotation] = React.useState(0)
   const [pointerJitter, setPointerJitter] = React.useState(0)
   
-  // Audio refs
-  const tickAudioRef = React.useRef<HTMLAudioElement | null>(null)
-  const winAudioRef = React.useRef<HTMLAudioElement | null>(null)
+  // Audio state - disabled by default for reliability
+  const [audioEnabled, setAudioEnabled] = React.useState(false)
   const lastTickRef = React.useRef<number>(0)
-
-  React.useEffect(() => {
-    // Initialize audio on client side
-    const tickAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/133/133-preview.mp3")
-    const winAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3")
-    
-    // Preload audio
-    tickAudio.load()
-    winAudio.load()
-    
-    tickAudio.volume = 0.5
-    winAudio.volume = 0.7
-    
-    tickAudioRef.current = tickAudio
-    winAudioRef.current = winAudio
-  }, [])
 
   const spin = async () => {
     if (isSpinning || items.length === 0) return
@@ -63,19 +46,6 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
         setDisplayRotation(v)
         const currentTick = Math.floor(v / segmentAngle)
         if (currentTick !== lastTickRef.current) {
-          // Play tick sound
-          if (tickAudioRef.current) {
-            try {
-              // Create a new audio instance for each tick
-              const tickSound = new Audio(tickAudioRef.current.src)
-              tickSound.volume = 0.3
-              tickSound.play().catch(() => {
-                // Ignore audio play errors
-              })
-            } catch (e) {
-              // Ignore audio errors
-            }
-          }
           lastTickRef.current = currentTick
           // Add pointer jitter
           setPointerJitter(prev => prev === 5 ? -5 : 5)
@@ -83,19 +53,6 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
         }
       },
     })
-
-    // Play win sound
-    if (winAudioRef.current) {
-      try {
-        const winSound = new Audio(winAudioRef.current.src)
-        winSound.volume = 0.7
-        winSound.play().catch(() => {
-          // Ignore audio play errors
-        })
-      } catch (e) {
-        // Ignore audio errors
-      }
-    }
 
     setIsSpinning(false)
     onSpinEnd(items[randomSegment])

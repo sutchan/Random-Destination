@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   keywords: ['travel', 'destination', 'wheel', 'random', 'AI', 'travel guide', 'budget', '旅游', '目的地', '转盘', '随机', '人工智能'],
   authors: [{ name: 'Sut' }],
   manifest: '/manifest.json',
+  icons: [{ rel: 'icon', url: '/favicon.svg', type: 'image/svg+xml' }],
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

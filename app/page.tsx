@@ -68,6 +68,15 @@ export default function Page() {
     setIsLoadingDetails(true)
     setError(null)
 
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      setIsLoadingDetails(false)
+      setDestinationDetails({
+        intro: lang === 'zh-CN' ? "探索未知的美好目的地！" : "Discover your next great destination!",
+        link: lang === 'zh-CN' ? "https://zh.wikipedia.org" : "https://www.wikipedia.org"
+      })
+      return
+    }
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
       const fullPath = [...drillDownPath, winnerName].join(" ")
@@ -92,8 +101,10 @@ export default function Page() {
       }
     } catch (e) {
       console.error("Failed to fetch destination details", e);
-      setError(lang === 'zh-CN' ? "获取目的地详情失败。" : "Failed to fetch details.");
-      throw e;
+      setDestinationDetails({
+        intro: lang === 'zh-CN' ? "探索未知的美好目的地！" : "Discover your next great destination!",
+        link: lang === 'zh-CN' ? "https://zh.wikipedia.org" : "https://www.wikipedia.org"
+      })
     } finally {
       setIsLoadingDetails(false)
     }
