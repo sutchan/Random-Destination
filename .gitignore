@@ -5,3 +5,7 @@ coverage/
 *.log
 .env*
 !.env.example
+*.tsbuildinfo
+public/workbox-*.js
+public/sw.js.map
+public/worker-*.js.map
