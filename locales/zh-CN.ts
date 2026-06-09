@@ -1,4 +1,4 @@
-// locales/zh-CN.ts v2.7.0
+// locales/zh-CN.ts v3.4.0
 const zhCN = {
   title: "随机目的地大转盘",
   shortTitle: "目的地转盘",
@@ -37,6 +37,9 @@ const zhCN = {
   readyToExplore: "准备好探索了吗？",
   readyDesc: "点击转盘中心开始你的下一次冒险，让 AI 为你挑选完美的旅行目的地。",
   retry: "重试",
+  browseRegions: "浏览行政区划",
+  all: "全部省份",
+  switchToList: "请切换到自定义列表后再添加目的地。",
 };
 
 export default zhCN;

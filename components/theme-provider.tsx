@@ -1,4 +1,4 @@
-// components/theme-provider.tsx v2.4.0
+// components/theme-provider.tsx v3.4.0
 "use client"
 
 import * as React from "react"

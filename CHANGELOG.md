@@ -6,6 +6,16 @@
 - **规范化命名**: 优化了部分自治州和地区的命名规范。
 - **数据版本升级**: 核心数据版本升级至 v1.4.0。
 
+### Fixed
+- **wheel.tsx**: 修复无效 Tailwind 类 `border-12` → `border-[6px]`；移除未使用的 `useAnimation` 及 `id` prop。
+- **mode-toggle.tsx**: 修复月亮图标缺少相对定位导致位置异常的问题；添加 `btn-theme-toggle` 语义 ID。
+- **use-destination.ts**: 预设列表不再被 `updateActiveListItems` 意外修改；持久化时仅保存预设引用，避免本地数据与代码预设不同步。
+- **settings-sheet.tsx**: 浏览模式下当前为预设列表时禁用"添加"按钮并显示友好提示；补充浏览区域语义 ID。
+- **locales/{en,zh-CN}.ts**: 补充 `browseRegions` / `all` / `switchToList` 等缺失翻译键。
+- **openspec/specification.md**: 全面更新至 v3.4.0，补充项目结构、语义 ID、状态契约、AI 集成、构建与版本化章节。
+- **app/page.tsx**: 移除未使用的 `ChinaRegion` import。
+- 所有文件头版本号统一到 v3.4.0。
+
 ## [3.3.0]
 ### Added
 - **行政区划数据深度扩展**: 进一步完善了华东（安徽、福建、江西、山东）等省份的地级市及下属区县数据，数据量提升 40%。

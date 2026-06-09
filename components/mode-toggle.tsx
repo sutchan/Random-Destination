@@ -1,4 +1,4 @@
-// components/mode-toggle.tsx v2.4.0
+// components/mode-toggle.tsx v3.4.0
 "use client"
 
 import * as React from "react"
@@ -14,9 +14,11 @@ export function ModeToggle() {
       variant="outline"
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      className="relative overflow-hidden"
+      id="btn-theme-toggle"
     >
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       <span className="sr-only">Toggle theme</span>
     </Button>
   )

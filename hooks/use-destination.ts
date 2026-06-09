@@ -1,4 +1,4 @@
-// hooks/use-destination.ts v3.0.0
+// hooks/use-destination.ts v3.4.0
 import * as React from "react"
 
 export type DestinationList = {
@@ -13,10 +13,10 @@ export const PRESETS: DestinationList[] = [
     id: "preset-provinces",
     name: "中国行政区划 (省/市/县)",
     items: [
-      "北京", "天津", "河北", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", 
-      "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", 
-      "湖北", "湖南", "广东", "广西", "海南", "重庆", "四川", "贵州", 
-      "云南", "西藏", "陕西", "甘肃", "青海", "宁夏", "新疆", "台湾", 
+      "北京", "天津", "河北", "山西", "内蒙古", "辽宁", "吉林", "黑龙江",
+      "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南",
+      "湖北", "湖南", "广东", "广西", "海南", "重庆", "四川", "贵州",
+      "云南", "西藏", "陕西", "甘肃", "青海", "宁夏", "新疆", "台湾",
       "香港", "澳门"
     ],
     isPreset: true
@@ -61,17 +61,16 @@ export function useDestination() {
   React.useEffect(() => {
     const savedLang = localStorage.getItem('app-lang') as "en" | "zh-CN"
     if (savedLang) setLang(savedLang)
-    
+
     const savedLists = localStorage.getItem('destination-lists')
     const savedActiveId = localStorage.getItem('active-list-id')
     const savedFavorites = localStorage.getItem('destination-favorites')
     const savedHistory = localStorage.getItem('destination-history')
-    
+
     if (savedLists) {
       try {
         const parsed = JSON.parse(savedLists)
         if (Array.isArray(parsed)) {
-          // Filter out old presets and replace with current ones
           const customLists = parsed.filter(l => !l.isPreset)
           setLists([...PRESETS, ...customLists])
         }
@@ -93,7 +92,9 @@ export function useDestination() {
   }, [])
 
   React.useEffect(() => {
-    localStorage.setItem('destination-lists', JSON.stringify(lists))
+    // Only persist custom lists + preset references (id + isPreset), never mutate preset items.
+    const persistable = lists.map(l => l.isPreset ? { id: l.id, name: l.name, items: [], isPreset: true } : l)
+    localStorage.setItem('destination-lists', JSON.stringify(persistable))
     localStorage.setItem('active-list-id', activeListId)
     localStorage.setItem('destination-favorites', JSON.stringify(favorites))
     localStorage.setItem('destination-history', JSON.stringify(history))
@@ -103,7 +104,8 @@ export function useDestination() {
   const activeList = lists.find(l => l.id === activeListId) || PRESETS[0]
 
   const updateActiveListItems = (newItems: string[]) => {
-    setLists(prev => prev.map(list => 
+    if (activeList.isPreset) return
+    setLists(prev => prev.map(list =>
       list.id === activeListId ? { ...list, items: newItems } : list
     ))
   }

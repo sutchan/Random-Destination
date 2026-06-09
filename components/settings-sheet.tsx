@@ -1,4 +1,4 @@
-// components/settings-sheet.tsx v2.6.0
+// components/settings-sheet.tsx v3.4.0
 "use client"
 
 import * as React from "react"
@@ -299,15 +299,21 @@ export function SettingsSheet({
                 </React.Fragment>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div id="browse-content-grid" className="grid grid-cols-2 gap-2">
+              {activeList.isPreset && (
+                <div id="browse-preset-hint" className="col-span-2 text-sm text-muted-foreground bg-muted/40 rounded-md p-3 text-center">
+                  {t.switchToList}
+                </div>
+              )}
               {browseItems.map(item => (
-                <Button 
-                  key={item.name} 
-                  variant="outline" 
+                <Button
+                  key={item.name}
+                  variant="outline"
+                  disabled={activeList.isPreset && !item.children}
                   onClick={() => {
                     if (item.children) {
                       setBrowsePath([...browsePath, item.name])
-                    } else {
+                    } else if (!activeList.isPreset) {
                       onAdd(item.name)
                     }
                   }}
