@@ -1,8 +1,8 @@
-// components/wheel.tsx v3.1.0
+// components/wheel.tsx v3.4.0
 "use client"
 
 import * as React from "react"
-import { motion, useAnimation, useMotionValue, animate } from "motion/react"
+import { motion, useMotionValue, animate } from "motion/react"
 import { MapPin } from "lucide-react"
 
 interface WheelProps {
@@ -10,10 +10,9 @@ interface WheelProps {
   onSpinEnd: (winner: string) => void
   spinText?: string
   spinningText?: string
-  id?: string
 }
 
-export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPINNING...", id }: WheelProps) {
+export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPINNING..." }: WheelProps) {
   const [isSpinning, setIsSpinning] = React.useState(false)
   const rotationValue = useMotionValue(0)
   const [displayRotation, setDisplayRotation] = React.useState(0)
@@ -122,7 +121,7 @@ export function Wheel({ items, onSpinEnd, spinText = "SPIN", spinningText = "SPI
         <MapPin className="w-10 h-10 md:w-12 md:h-12 fill-primary text-primary-foreground" />
       </motion.div>
 
-      <div id="wheel-outer" className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] aspect-square rounded-full overflow-hidden border-4 md:border-12 border-primary shadow-[0_0_50px_rgba(0,0,0,0.2)] bg-muted">
+      <div id="wheel-outer" className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] aspect-square rounded-full overflow-hidden border-4 md:border-[6px] border-primary shadow-[0_0_50px_rgba(0,0,0,0.2)] bg-muted">
         {/* Glossy Overlay */}
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-white/20 via-transparent to-black/10 rounded-full" />
         

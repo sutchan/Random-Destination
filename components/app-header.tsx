@@ -1,4 +1,4 @@
-// components/app-header.tsx v2.6.0
+// components/app-header.tsx v3.4.0
 "use client"
 
 import * as React from "react"

@@ -1,4 +1,4 @@
-// locales/en.ts v2.7.0
+// locales/en.ts v3.4.0
 const en = {
   title: "Random Destination Wheel",
   shortTitle: "Dest. Wheel",
@@ -37,6 +37,9 @@ const en = {
   readyToExplore: "Ready to Explore?",
   readyDesc: "Click the center of the wheel to start your next adventure and let AI pick the perfect destination for you.",
   retry: "Retry",
+  browseRegions: "Browse Regions",
+  all: "All Provinces",
+  switchToList: "Please switch to a custom list to add destinations.",
 };
 
 export default en;
