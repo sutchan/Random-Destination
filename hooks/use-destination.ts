@@ -1,11 +1,33 @@
 // hooks/use-destination.ts v3.4.0
 import * as React from "react"
 
+// SEC-005: Define schema for type-safe localStorage data
 export type DestinationList = {
   id: string;
   name: string;
   items: string[];
   isPreset: boolean;
+}
+
+// SEC-005: Schema validation helpers
+function isValidDestinationList(obj: unknown): obj is DestinationList {
+  if (typeof obj !== "object" || obj === null) return false
+  const o = obj as Record<string, unknown>
+  return (
+    typeof o.id === "string" &&
+    typeof o.name === "string" &&
+    Array.isArray(o.items) &&
+    o.items.every(item => typeof item === "string") &&
+    typeof o.isPreset === "boolean"
+  )
+}
+
+function isValidStringArray(obj: unknown): obj is string[] {
+  return Array.isArray(obj) && obj.every(item => typeof item === "string")
+}
+
+function isValidLang(obj: unknown): obj is "en" | "zh-CN" {
+  return obj === "en" || obj === "zh-CN"
 }
 
 export const PRESETS: DestinationList[] = [
@@ -58,47 +80,70 @@ export function useDestination() {
   const [history, setHistory] = React.useState<string[]>([])
   const [lang, setLang] = React.useState<"en" | "zh-CN">("zh-CN")
 
+  // SEC-005: Load from localStorage with validation
   React.useEffect(() => {
-    const savedLang = localStorage.getItem('app-lang') as "en" | "zh-CN"
-    if (savedLang) setLang(savedLang)
+    try {
+      // Load language
+      const savedLang = localStorage.getItem("app-lang")
+      if (savedLang && isValidLang(savedLang)) {
+        setLang(savedLang)
+      }
 
-    const savedLists = localStorage.getItem('destination-lists')
-    const savedActiveId = localStorage.getItem('active-list-id')
-    const savedFavorites = localStorage.getItem('destination-favorites')
-    const savedHistory = localStorage.getItem('destination-history')
-
-    if (savedLists) {
-      try {
+      // Load and validate lists
+      const savedLists = localStorage.getItem("destination-lists")
+      if (savedLists) {
         const parsed = JSON.parse(savedLists)
         if (Array.isArray(parsed)) {
-          const customLists = parsed.filter(l => !l.isPreset)
+          // SEC-005: Filter and validate custom lists only
+          const customLists = parsed.filter(
+            (item): item is DestinationList =>
+              !item.isPreset && isValidDestinationList(item)
+          )
           setLists([...PRESETS, ...customLists])
         }
-      } catch (e) {}
-    }
-    if (savedActiveId) setActiveListId(savedActiveId)
-    if (savedFavorites) {
-      try {
-        const parsed = JSON.parse(savedFavorites)
-        if (Array.isArray(parsed)) setFavorites(parsed)
-      } catch (e) {}
-    }
-    if (savedHistory) {
-      try {
-        const parsed = JSON.parse(savedHistory)
-        if (Array.isArray(parsed)) setHistory(parsed)
-      } catch (e) {}
+      }
+
+      // Load and validate active list ID
+      const savedActiveId = localStorage.getItem("active-list-id")
+      if (savedActiveId && typeof savedActiveId === "string") {
+        setActiveListId(savedActiveId)
+      }
+
+      // Load and validate favorites
+      const savedFavorites = localStorage.getItem("destination-favorites")
+      if (savedFavorites && isValidStringArray(JSON.parse(savedFavorites))) {
+        setFavorites(JSON.parse(savedFavorites))
+      }
+
+      // Load and validate history
+      const savedHistory = localStorage.getItem("destination-history")
+      if (savedHistory && isValidStringArray(JSON.parse(savedHistory))) {
+        setHistory(JSON.parse(savedHistory))
+      }
+    } catch (e) {
+      // SEC-004: Conditional logging for production safety
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to load from localStorage:", e)
+      }
+      // Reset to defaults on error
+      setLists(PRESETS)
+      setActiveListId(PRESETS[0].id)
+      setFavorites([])
+      setHistory([])
     }
   }, [])
 
+  // Persist to localStorage
   React.useEffect(() => {
     // Only persist custom lists + preset references (id + isPreset), never mutate preset items.
-    const persistable = lists.map(l => l.isPreset ? { id: l.id, name: l.name, items: [], isPreset: true } : l)
-    localStorage.setItem('destination-lists', JSON.stringify(persistable))
-    localStorage.setItem('active-list-id', activeListId)
-    localStorage.setItem('destination-favorites', JSON.stringify(favorites))
-    localStorage.setItem('destination-history', JSON.stringify(history))
-    localStorage.setItem('app-lang', lang)
+    const persistable = lists.map(l =>
+      l.isPreset ? { id: l.id, name: l.name, items: [], isPreset: true } : l
+    )
+    localStorage.setItem("destination-lists", JSON.stringify(persistable))
+    localStorage.setItem("active-list-id", activeListId)
+    localStorage.setItem("destination-favorites", JSON.stringify(favorites))
+    localStorage.setItem("destination-history", JSON.stringify(history))
+    localStorage.setItem("app-lang", lang)
   }, [lists, activeListId, favorites, history, lang])
 
   const activeList = lists.find(l => l.id === activeListId) || PRESETS[0]
