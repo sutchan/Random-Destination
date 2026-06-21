@@ -1,9 +1,9 @@
 // app/layout.tsx v3.4.0
 import type {Metadata, Viewport} from 'next';
 import './globals.css'; // Global styles
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/app/components/theme-provider"
 import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 

@@ -2,23 +2,22 @@
 "use client"
 
 import * as React from "react"
-import { Wheel } from "@/components/wheel"
-import { AppHeader } from "@/components/app-header"
-import { SettingsSheet } from "@/components/settings-sheet"
-import { WinnerCard } from "@/components/winner-card"
-import confetti from "canvas-confetti"
-import { GoogleGenAI, Type } from "@google/genai"
-import { useDestination } from "@/hooks/use-destination"
-import { CHINA_REGIONS } from "@/lib/china-data"
-import { Button } from "@/components/ui/button"
+import { Wheel } from "@/app/components/wheel"
+import { AppHeader } from "@/app/components/app-header"
+import { SettingsSheet } from "@/app/components/settings-sheet"
+import { WinnerCard } from "@/app/components/winner-card"
+import { useDestination } from "@/app/hooks/use-destination"
+import { CHINA_REGIONS } from "@/app/lib/china-data"
+import { Button } from "@/app/components/ui/button"
 import { ChevronRight, RotateCcw } from "lucide-react"
-import en from "@/locales/en"
-import zhCN from "@/locales/zh-CN"
+import en from "@/app/locales/en"
+import zhCN from "@/app/locales/zh-CN"
 
+// PERF-001: Move locales outside component to prevent recreation on each render
 const locales = {
   en,
   "zh-CN": zhCN
-}
+} as const
 
 export default function Page() {
   const {
@@ -28,7 +27,7 @@ export default function Page() {
   } = useDestination()
 
   const t = locales[lang]
-  
+
   const [winner, setWinner] = React.useState<string | null>(null)
   const [destinationDetails, setDestinationDetails] = React.useState<{ intro: string; link: string } | null>(null)
   const [isLoadingDetails, setIsLoadingDetails] = React.useState(false)
@@ -37,7 +36,7 @@ export default function Page() {
   // Hierarchical state
   const [drillDownPath, setDrillDownPath] = React.useState<string[]>([])
 
-  // Compute currentLevelItems based on activeList or drillDownPath
+  // PERF-003: useMemo for computed values
   const currentLevelItems = React.useMemo(() => {
     if (activeListId === "preset-provinces") {
       if (drillDownPath.length === 0) {
@@ -56,89 +55,95 @@ export default function Page() {
     }
   }, [activeListId, activeList.items, drillDownPath])
 
-  // Reset drillDownPath when switching away from hierarchical preset
+  // PERF-002: Reset drillDownPath when switching away from hierarchical preset
   React.useEffect(() => {
     if (activeListId !== "preset-provinces" && drillDownPath.length > 0) {
       setDrillDownPath([])
     }
   }, [activeListId, drillDownPath.length])
 
-  const fetchDestinationDetails = async (winnerName: string) => {
+  // PERF-002: useCallback for fetch function
+  const fetchDestinationDetails = React.useCallback(async (winnerName: string) => {
     setDestinationDetails(null)
     setIsLoadingDetails(true)
     setError(null)
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-      const fullPath = [...drillDownPath, winnerName].join(" ")
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Provide a brief introduction (max 100 characters) and a Wikipedia link for the location: ${fullPath}. Return in JSON format with keys: intro, link. Language: ${lang === 'zh-CN' ? 'Chinese' : 'English'}.`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              intro: { type: Type.STRING },
-              link: { type: Type.STRING },
-            },
-            required: ["intro", "link"],
-          },
+      // SEC-001: Use API route instead of direct Gemini API call
+      const response = await fetch("/api/destination", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      });
-      
-      if (response.text) {
-        setDestinationDetails(JSON.parse(response.text));
+        body: JSON.stringify({
+          location: [...drillDownPath, winnerName].join(" "),
+          language: lang,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to fetch details")
       }
+
+      const data = await response.json()
+      setDestinationDetails(data)
     } catch (e) {
-      console.error("Failed to fetch destination details", e);
-      setError(lang === 'zh-CN' ? "获取目的地详情失败。" : "Failed to fetch details.");
-      throw e;
+      // SEC-004: Conditional logging for production safety
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to fetch destination details", e)
+      }
+      setError(lang === "zh-CN" ? "获取目的地详情失败。" : "Failed to fetch details.")
     } finally {
       setIsLoadingDetails(false)
     }
-  };
+  }, [drillDownPath, lang])
 
-  const handleSpinEnd = async (winnerName: string) => {
+  // PERF-002: useCallback for spin handler
+  const handleSpinEnd = React.useCallback(async (winnerName: string) => {
     setWinner(winnerName)
     addHistory(winnerName)
 
+    // PERF-004: Dynamic import confetti to reduce initial bundle size
+    const confetti = (await import("canvas-confetti")).default
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 }
     })
 
-    await fetchDestinationDetails(winnerName).catch(() => {
+    fetchDestinationDetails(winnerName).catch(() => {
       // Error already handled in fetchDestinationDetails
-    });
-  }
+    })
+  }, [addHistory, fetchDestinationDetails])
 
-  const handleDrillDown = () => {
+  // PERF-002: useCallback for drill down handler
+  const handleDrillDown = React.useCallback(() => {
     if (winner) {
-      setDrillDownPath([...drillDownPath, winner])
+      setDrillDownPath(prev => [...prev, winner])
       setWinner(null)
       setDestinationDetails(null)
     }
-  }
+  }, [winner])
 
-  const resetDrillDown = () => {
+  // PERF-002: useCallback for reset handler
+  const resetDrillDown = React.useCallback(() => {
     setDrillDownPath([])
     setWinner(null)
     setDestinationDetails(null)
-  }
+  }, [])
 
   const canDrillDown = activeListId === "preset-provinces" && drillDownPath.length < 2 && currentLevelItems.length > 0
 
   return (
     <div id="app-container" className="min-h-screen bg-background text-foreground flex flex-col">
-      <AppHeader 
-        title={t.title} 
-        shortTitle={t.shortTitle} 
-        lang={lang} 
+      <AppHeader
+        title={t.title}
+        shortTitle={t.shortTitle}
+        lang={lang}
         onLangToggle={() => setLang(lang === "zh-CN" ? "en" : "zh-CN")}
       >
-        <SettingsSheet 
+        <SettingsSheet
           t={t}
           lists={lists}
           activeListId={activeListId}
@@ -173,7 +178,7 @@ export default function Page() {
             <div id="drill-down-nav" className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
               <Button variant="ghost" size="sm" className="h-6 px-2" onClick={resetDrillDown}>
                 <RotateCcw className="w-3 h-3 mr-1" />
-                {lang === 'zh-CN' ? '重置' : 'Reset'}
+                {lang === "zh-CN" ? "重置" : "Reset"}
               </Button>
               {drillDownPath.map((name, i) => (
                 <React.Fragment key={i}>
@@ -184,17 +189,17 @@ export default function Page() {
             </div>
           )}
 
-          <Wheel 
+          <Wheel
             key={`${activeListId}-${drillDownPath.join("-")}`}
-            items={currentLevelItems} 
-            onSpinEnd={handleSpinEnd} 
+            items={currentLevelItems}
+            onSpinEnd={handleSpinEnd}
             spinText={t.startSpin}
             spinningText={t.spinning}
           />
-          
+
           {winner && (
             <div className="flex flex-col items-center gap-4 w-full max-w-md">
-              <WinnerCard 
+              <WinnerCard
                 t={t}
                 winner={winner}
                 favorites={favorites}
@@ -205,14 +210,14 @@ export default function Page() {
                 error={error}
                 onRetry={() => winner && fetchDestinationDetails(winner)}
               />
-              
+
               {canDrillDown && (
-                <Button 
+                <Button
                   id="drill-down-button"
                   onClick={handleDrillDown}
                   className="w-full py-6 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all"
                 >
-                  {drillDownPath.length === 0 ? (lang === 'zh-CN' ? '进入市级抽签' : 'Spin for City') : (lang === 'zh-CN' ? '进入县级抽签' : 'Spin for County')}
+                  {drillDownPath.length === 0 ? (lang === "zh-CN" ? "进入市级抽签" : "Spin for City") : (lang === "zh-CN" ? "进入县级抽签" : "Spin for County")}
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Button>
               )}
