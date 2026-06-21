@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, useMotionValue, useTransform, animate } from "motion/react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/lib/utils"
 import { Play } from "lucide-react"
 
 interface WheelProps {

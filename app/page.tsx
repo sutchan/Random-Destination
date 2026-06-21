@@ -2,16 +2,16 @@
 "use client"
 
 import * as React from "react"
-import { Wheel } from "@/components/wheel"
-import { AppHeader } from "@/components/app-header"
-import { SettingsSheet } from "@/components/settings-sheet"
-import { WinnerCard } from "@/components/winner-card"
-import { useDestination } from "@/hooks/use-destination"
-import { CHINA_REGIONS } from "@/lib/china-data"
-import { Button } from "@/components/ui/button"
+import { Wheel } from "@/app/components/wheel"
+import { AppHeader } from "@/app/components/app-header"
+import { SettingsSheet } from "@/app/components/settings-sheet"
+import { WinnerCard } from "@/app/components/winner-card"
+import { useDestination } from "@/app/hooks/use-destination"
+import { CHINA_REGIONS } from "@/app/lib/china-data"
+import { Button } from "@/app/components/ui/button"
 import { ChevronRight, RotateCcw } from "lucide-react"
-import en from "@/locales/en"
-import zhCN from "@/locales/zh-CN"
+import en from "@/app/locales/en"
+import zhCN from "@/app/locales/zh-CN"
 
 // PERF-001: Move locales outside component to prevent recreation on each render
 const locales = {

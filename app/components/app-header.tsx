@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { Settings, Languages } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/app/lib/utils"
+import { Button } from "@/app/components/ui/button"
 
 interface AppHeaderProps {
   title: string
