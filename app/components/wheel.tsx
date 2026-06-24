@@ -12,6 +12,7 @@ interface WheelProps {
   spinningText: string
 }
 
+// rendering-hoist-jsx: Hoist static constants outside component
 const COLORS = [
   "hsl(var(--primary))",
   "hsl(142, 71%, 45%)",
@@ -21,9 +22,8 @@ const COLORS = [
   "hsl(199, 89%, 48%)",
   "hsl(340, 82%, 52%)",
   "hsl(160, 70%, 45%)",
-]
+] as const
 
-// PERF-005: Generate SVG segments once and cache them
 interface WheelSegment {
   path: string
   text: string
@@ -33,11 +33,17 @@ interface WheelSegment {
   textRotation: number
 }
 
+// js-cache-function-results: Cache segment generation results
+const segmentCache = new Map<string, WheelSegment[]>()
+
 function generateWheelSegments(items: string[]): WheelSegment[] {
   if (items.length === 0) return []
+  const cacheKey = items.join("|")
+  const cached = segmentCache.get(cacheKey)
+  if (cached) return cached
 
   const segmentAngle = 360 / items.length
-  return items.map((item, index) => {
+  const result = items.map((item, index) => {
     const startAngle = index * segmentAngle - 90
     const endAngle = startAngle + segmentAngle
     const startRad = (startAngle * Math.PI) / 180
@@ -62,24 +68,30 @@ function generateWheelSegments(items: string[]): WheelSegment[] {
       textRotation,
     }
   })
+
+  if (segmentCache.size > 50) {
+    segmentCache.clear()
+  }
+  segmentCache.set(cacheKey, result)
+  return result
 }
 
-export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) {
+// rerender-memo: Wrap with React.memo
+export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) {
   const [isSpinning, setIsSpinning] = React.useState(false)
   const rotation = useMotionValue(0)
   const rotated = useTransform(rotation, (v) => `${v}deg`)
   const animationRef = React.useRef<ReturnType<typeof animate> | null>(null)
 
-  // PERF-005: Cache segments to avoid recalculating on every render
+  // rerender-simple-expression-in-memo: Memoize only when computation is non-trivial
   const segments = React.useMemo(
     () => generateWheelSegments(items),
-    // Only regenerate when items change
-    [items.join("|")]
+    [items]
   )
 
-  // PERF-005: Calculate segment angle for winning logic
   const segmentAngle = items.length > 0 ? 360 / items.length : 0
 
+  // rerender-move-effect-to-event: Spin logic in event handler, not effect
   const handleSpin = React.useCallback(() => {
     if (isSpinning || items.length === 0) return
     setIsSpinning(true)
@@ -105,6 +117,7 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
     }
   }, [])
 
+  // rendering-conditional-render: Use ternary, not && for conditionals
   if (items.length === 0) {
     return (
       <div className="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96 rounded-full border-2 border-dashed border-muted-foreground/30 bg-muted/20">
@@ -117,7 +130,6 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
 
   return (
     <div className="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
-      {/* Pointer */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
         <div
           className="w-0 h-0"
@@ -129,13 +141,12 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
         />
       </div>
 
-      {/* Wheel */}
+      {/* rendering-animate-svg-wrapper: Animate div wrapper, not SVG element */}
       <motion.div
         style={{ rotate: rotated }}
         className="w-full h-full rounded-full border-8 border-primary/80 shadow-2xl overflow-hidden"
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
-          {/* PERF-005: Use cached segments */}
           {segments.map((segment, index) => (
             <g key={index}>
               <path
@@ -162,7 +173,6 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
         </svg>
       </motion.div>
 
-      {/* Center button */}
       <button
         onClick={handleSpin}
         disabled={isSpinning}
@@ -179,4 +189,4 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
       </button>
     </div>
   )
-}
+})

@@ -1,7 +1,6 @@
-// hooks/use-destination.ts v3.4.0
+// hooks/use-destination.ts v3.5.0
 import * as React from "react"
 
-// SEC-005: Define schema for type-safe localStorage data
 export type DestinationList = {
   id: string;
   name: string;
@@ -9,7 +8,6 @@ export type DestinationList = {
   isPreset: boolean;
 }
 
-// SEC-005: Schema validation helpers
 function isValidDestinationList(obj: unknown): obj is DestinationList {
   if (typeof obj !== "object" || obj === null) return false
   const o = obj as Record<string, unknown>
@@ -73,6 +71,23 @@ export const PRESETS: DestinationList[] = [
   }
 ]
 
+// js-cache-storage: Cache localStorage reads to avoid repeated I/O
+const storageCache = new Map<string, string | null>()
+
+function getCachedStorage(key: string): string | null {
+  if (storageCache.has(key)) {
+    return storageCache.get(key) ?? null
+  }
+  const value = localStorage.getItem(key)
+  storageCache.set(key, value)
+  return value
+}
+
+function setCachedStorage(key: string, value: string) {
+  storageCache.set(key, value)
+  localStorage.setItem(key, value)
+}
+
 export function useDestination() {
   const [lists, setLists] = React.useState<DestinationList[]>(PRESETS)
   const [activeListId, setActiveListId] = React.useState<string>(PRESETS[0].id)
@@ -80,21 +95,23 @@ export function useDestination() {
   const [history, setHistory] = React.useState<string[]>([])
   const [lang, setLang] = React.useState<"en" | "zh-CN">("zh-CN")
 
-  // SEC-005: Load from localStorage with validation
+  // rerender-lazy-state-init: Lazy load from localStorage only on mount
+  const isInitialized = React.useRef(false)
+
   React.useEffect(() => {
+    if (isInitialized.current) return
+    isInitialized.current = true
+
     try {
-      // Load language
-      const savedLang = localStorage.getItem("app-lang")
+      const savedLang = getCachedStorage("app-lang")
       if (savedLang && isValidLang(savedLang)) {
         setLang(savedLang)
       }
 
-      // Load and validate lists
-      const savedLists = localStorage.getItem("destination-lists")
+      const savedLists = getCachedStorage("destination-lists")
       if (savedLists) {
         const parsed = JSON.parse(savedLists)
         if (Array.isArray(parsed)) {
-          // SEC-005: Filter and validate custom lists only
           const customLists = parsed.filter(
             (item): item is DestinationList =>
               !item.isPreset && isValidDestinationList(item)
@@ -103,29 +120,24 @@ export function useDestination() {
         }
       }
 
-      // Load and validate active list ID
-      const savedActiveId = localStorage.getItem("active-list-id")
+      const savedActiveId = getCachedStorage("active-list-id")
       if (savedActiveId && typeof savedActiveId === "string") {
         setActiveListId(savedActiveId)
       }
 
-      // Load and validate favorites
-      const savedFavorites = localStorage.getItem("destination-favorites")
+      const savedFavorites = getCachedStorage("destination-favorites")
       if (savedFavorites && isValidStringArray(JSON.parse(savedFavorites))) {
         setFavorites(JSON.parse(savedFavorites))
       }
 
-      // Load and validate history
-      const savedHistory = localStorage.getItem("destination-history")
+      const savedHistory = getCachedStorage("destination-history")
       if (savedHistory && isValidStringArray(JSON.parse(savedHistory))) {
         setHistory(JSON.parse(savedHistory))
       }
     } catch (e) {
-      // SEC-004: Conditional logging for production safety
       if (process.env.NODE_ENV === "development") {
         console.error("Failed to load from localStorage:", e)
       }
-      // Reset to defaults on error
       setLists(PRESETS)
       setActiveListId(PRESETS[0].id)
       setFavorites([])
@@ -133,41 +145,78 @@ export function useDestination() {
     }
   }, [])
 
-  // Persist to localStorage
+  // client-localstorage-schema: Debounce localStorage writes to reduce I/O
+  const persistTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
   React.useEffect(() => {
-    // Only persist custom lists + preset references (id + isPreset), never mutate preset items.
-    const persistable = lists.map(l =>
-      l.isPreset ? { id: l.id, name: l.name, items: [], isPreset: true } : l
-    )
-    localStorage.setItem("destination-lists", JSON.stringify(persistable))
-    localStorage.setItem("active-list-id", activeListId)
-    localStorage.setItem("destination-favorites", JSON.stringify(favorites))
-    localStorage.setItem("destination-history", JSON.stringify(history))
-    localStorage.setItem("app-lang", lang)
+    if (!isInitialized.current) return
+
+    if (persistTimer.current) {
+      clearTimeout(persistTimer.current)
+    }
+
+    persistTimer.current = setTimeout(() => {
+      const persistable = lists.map(l =>
+        l.isPreset ? { id: l.id, name: l.name, items: [], isPreset: true } : l
+      )
+      setCachedStorage("destination-lists", JSON.stringify(persistable))
+      setCachedStorage("active-list-id", activeListId)
+      setCachedStorage("destination-favorites", JSON.stringify(favorites))
+      setCachedStorage("destination-history", JSON.stringify(history))
+      setCachedStorage("app-lang", lang)
+    }, 300)
+
+    return () => {
+      if (persistTimer.current) {
+        clearTimeout(persistTimer.current)
+      }
+    }
   }, [lists, activeListId, favorites, history, lang])
 
-  const activeList = lists.find(l => l.id === activeListId) || PRESETS[0]
+  const activeList = React.useMemo(
+    () => lists.find(l => l.id === activeListId) || PRESETS[0],
+    [lists, activeListId]
+  )
 
-  const updateActiveListItems = (newItems: string[]) => {
-    if (activeList.isPreset) return
-    setLists(prev => prev.map(list =>
-      list.id === activeListId ? { ...list, items: newItems } : list
-    ))
-  }
+  // rerender-functional-setstate: Use functional setState for stable callbacks
+  const updateActiveListItems = React.useCallback((newItems: string[]) => {
+    setLists(prev => {
+      const target = prev.find(l => l.id === activeListId)
+      if (!target || target.isPreset) return prev
+      return prev.map(list =>
+        list.id === activeListId ? { ...list, items: newItems } : list
+      )
+    })
+  }, [activeListId])
 
-  const toggleFavorite = (item: string) => {
-    setFavorites(prev => prev.includes(item) ? prev.filter(f => f !== item) : [...prev, item])
-  }
+  // js-set-map-lookups: Use Set for O(1) membership checks
+  const toggleFavorite = React.useCallback((item: string) => {
+    setFavorites(prev => {
+      const favSet = new Set(prev)
+      if (favSet.has(item)) {
+        favSet.delete(item)
+      } else {
+        favSet.add(item)
+      }
+      return Array.from(favSet)
+    })
+  }, [])
 
-  const addHistory = (item: string) => {
-    setHistory(prev => [item, ...prev].slice(0, 50))
-  }
+  const addHistory = React.useCallback((item: string) => {
+    setHistory(prev => [item, ...prev.filter(h => h !== item)].slice(0, 50))
+  }, [])
+
+  // rerender-derived-state-no-effect: Derive isFavorited via helper, not state
+  const isFavorited = React.useCallback(
+    (item: string) => favorites.some(f => f === item),
+    [favorites]
+  )
 
   return {
     lists, setLists,
     activeListId, setActiveListId,
     activeList,
-    favorites, setFavorites, toggleFavorite,
+    favorites, setFavorites, toggleFavorite, isFavorited,
     history, setHistory, addHistory,
     lang, setLang,
     updateActiveListItems

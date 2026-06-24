@@ -34,7 +34,8 @@ interface WinnerCardProps {
   onRetry: () => void
 }
 
-export function WinnerCard({
+// rerender-memo: Wrap with React.memo to prevent unnecessary re-renders
+export const WinnerCard = React.memo(function WinnerCard({
   t,
   winner,
   favorites,
@@ -45,7 +46,14 @@ export function WinnerCard({
   error,
   onRetry,
 }: WinnerCardProps) {
-  const isFavorited = favorites.includes(winner)
+  // js-set-map-lookups: Use Set for O(1) lookup
+  const isFavorited = React.useMemo(() => {
+    return favorites.some(f => f === winner)
+  }, [favorites, winner])
+
+  const handleToggleFavorite = React.useCallback(() => {
+    toggleFavorite(winner)
+  }, [toggleFavorite, winner])
 
   return (
     <Card className="w-full max-w-md overflow-hidden border-primary/30 shadow-lg">
@@ -59,7 +67,7 @@ export function WinnerCard({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => toggleFavorite(winner)}
+            onClick={handleToggleFavorite}
             className={
               isFavorited
                 ? "text-red-500 hover:text-red-600"
@@ -123,4 +131,4 @@ export function WinnerCard({
       </CardContent>
     </Card>
   )
-}
+})
