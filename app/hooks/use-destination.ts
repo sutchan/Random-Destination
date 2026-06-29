@@ -1,5 +1,6 @@
-// hooks/use-destination.ts v3.4.0
+// hooks/use-destination.ts v3.5.0
 import * as React from "react"
+import { CHINA_REGIONS, flattenAllRegions } from "@/app/lib/china-data"
 
 // SEC-005: Define schema for type-safe localStorage data
 export type DestinationList = {
@@ -30,7 +31,15 @@ function isValidLang(obj: unknown): obj is "en" | "zh-CN" {
   return obj === "en" || obj === "zh-CN"
 }
 
+export const ALL_REGIONS_FLAT = flattenAllRegions(CHINA_REGIONS)
+
 export const PRESETS: DestinationList[] = [
+  {
+    id: "preset-all",
+    name: "全国所有县市",
+    items: ALL_REGIONS_FLAT,
+    isPreset: true
+  },
   {
     id: "preset-provinces",
     name: "中国行政区划 (省/市/县)",
@@ -75,7 +84,7 @@ export const PRESETS: DestinationList[] = [
 
 export function useDestination() {
   const [lists, setLists] = React.useState<DestinationList[]>(PRESETS)
-  const [activeListId, setActiveListId] = React.useState<string>(PRESETS[0].id)
+  const [activeListId, setActiveListId] = React.useState<string>("preset-all")
   const [favorites, setFavorites] = React.useState<string[]>([])
   const [history, setHistory] = React.useState<string[]>([])
   const [lang, setLang] = React.useState<"en" | "zh-CN">("zh-CN")
