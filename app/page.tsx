@@ -2,11 +2,8 @@
 "use client"
 
 import * as React from "react"
-<<<<<<< HEAD
 import { motion } from "motion/react"
-=======
 import dynamic from "next/dynamic"
->>>>>>> origin/trae/solo-agent-1RTvd8
 import { Wheel } from "@/app/components/wheel"
 import { AppHeader } from "@/app/components/app-header"
 import { useDestination } from "@/app/hooks/use-destination"
@@ -14,8 +11,6 @@ import { CHINA_REGIONS } from "@/app/lib/china-data"
 import en from "@/app/locales/en"
 import zhCN from "@/app/locales/zh-CN"
 
-<<<<<<< HEAD
-=======
 // bundle-dynamic-imports: Lazy load heavy components to reduce initial bundle size
 const SettingsSheet = dynamic(() => import("@/app/components/settings-sheet").then(m => ({ default: m.SettingsSheet })), {
   ssr: false,
@@ -28,7 +23,6 @@ const WinnerCard = dynamic(() => import("@/app/components/winner-card").then(m =
 })
 
 // PERF-001: Move locales outside component to prevent recreation on each render
->>>>>>> origin/trae/solo-agent-1RTvd8
 const locales = {
   en,
   "zh-CN": zhCN
@@ -51,8 +45,6 @@ export default function Page() {
   const [isLoadingDetails, setIsLoadingDetails] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-<<<<<<< HEAD
-=======
   const [drillDownPath, setDrillDownPath] = React.useState<string[]>([])
 
   // rerender-derived-state-no-effect: Derive currentLevelItems during render, not effects
@@ -87,7 +79,6 @@ export default function Page() {
   }, [setLang])
 
   // PERF-002: useCallback for fetch function
->>>>>>> origin/trae/solo-agent-1RTvd8
   const fetchDestinationDetails = React.useCallback(async (winnerName: string) => {
     setDestinationDetails(null)
     setIsLoadingDetails(true)
