@@ -1,7 +1,7 @@
-// next.config.ts v3.0.0
+// next.config.ts v3.5.0
 import type {NextConfig} from 'next';
-import withPWA from 'next-pwa';
 
+// SEC-006: 安全响应头
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
@@ -36,12 +36,7 @@ const securityHeaders = [
   },
 ];
 
-const nextConfig: NextConfig = withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-})({
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
@@ -49,7 +44,6 @@ const nextConfig: NextConfig = withPWA({
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Allow access to remote image placeholder.
   images: {
     remotePatterns: [
       {
@@ -62,7 +56,6 @@ const nextConfig: NextConfig = withPWA({
   },
   output: 'standalone',
   transpilePackages: ['motion'],
-  // SEC-006: Apply security headers
   async headers() {
     return [
       {
@@ -72,8 +65,7 @@ const nextConfig: NextConfig = withPWA({
     ];
   },
   webpack: (config, {dev}) => {
-    // HMR is disabled in AI Studio via DISABLE_HMR env var.
-    // Do not modify—file watching is disabled to prevent flickering during agent edits.
+    // HMR is disabled in AI Studio via DISABLE_HMR env var
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,
@@ -81,6 +73,6 @@ const nextConfig: NextConfig = withPWA({
     }
     return config;
   },
-});
+};
 
 export default nextConfig;

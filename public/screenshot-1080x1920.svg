@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#ffffff"/>
+  <circle cx="540" cy="600" r="250" fill="#3b82f6"/>
+  <circle cx="540" cy="600" r="195" fill="#60a5fa"/>
+  <path d="M540 350 L595 560 L805 600 L595 640 L540 850 L485 640 L275 600 L485 560 Z" fill="#fff"/>
+  <circle cx="540" cy="600" r="56" fill="#1d4ed8"/>
+  <text x="540" y="1100" font-family="sans-serif" font-size="64" fill="#1f2937" text-anchor="middle">Random Destination</text>
+  <text x="540" y="1200" font-family="sans-serif" font-size="48" fill="#6b7280" text-anchor="middle">Spin the wheel!</text>
+</svg>
