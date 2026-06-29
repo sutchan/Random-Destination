@@ -23,7 +23,6 @@ export const metadata: Metadata = {
   description: 'A customizable spinning wheel to pick a random travel destination with AI-powered insights, history, and favorites. Supports hierarchical spinning (Province > City > County).',
   keywords: ['travel', 'destination', 'wheel', 'random', 'AI', 'travel guide', 'budget', '旅游', '目的地', '转盘', '随机', '人工智能'],
   authors: [{ name: 'Sut' }],
-  manifest: '/manifest.json',
   icons: [{ rel: 'icon', url: '/favicon.svg', type: 'image/svg+xml' }],
   appleWebApp: {
     capable: true,
