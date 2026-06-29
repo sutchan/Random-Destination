@@ -2,20 +2,40 @@
 "use client"
 
 import * as React from "react"
+<<<<<<< HEAD
 import { motion } from "motion/react"
+=======
+import dynamic from "next/dynamic"
+>>>>>>> origin/trae/solo-agent-1RTvd8
 import { Wheel } from "@/app/components/wheel"
 import { AppHeader } from "@/app/components/app-header"
-import { SettingsSheet } from "@/app/components/settings-sheet"
-import { WinnerCard } from "@/app/components/winner-card"
 import { useDestination } from "@/app/hooks/use-destination"
 import { CHINA_REGIONS } from "@/app/lib/china-data"
 import en from "@/app/locales/en"
 import zhCN from "@/app/locales/zh-CN"
 
+<<<<<<< HEAD
+=======
+// bundle-dynamic-imports: Lazy load heavy components to reduce initial bundle size
+const SettingsSheet = dynamic(() => import("@/app/components/settings-sheet").then(m => ({ default: m.SettingsSheet })), {
+  ssr: false,
+})
+const WinnerCard = dynamic(() => import("@/app/components/winner-card").then(m => ({ default: m.WinnerCard })), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-md h-48 bg-muted/30 rounded-xl animate-pulse" />
+  ),
+})
+
+// PERF-001: Move locales outside component to prevent recreation on each render
+>>>>>>> origin/trae/solo-agent-1RTvd8
 const locales = {
   en,
   "zh-CN": zhCN
 } as const
+
+// js-index-maps: Build Map for repeated province/city lookups (O(1) vs O(n))
+const provinceMap = new Map(CHINA_REGIONS.map(r => [r.name, r]))
 
 export default function Page() {
   const {
@@ -31,6 +51,43 @@ export default function Page() {
   const [isLoadingDetails, setIsLoadingDetails] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+<<<<<<< HEAD
+=======
+  const [drillDownPath, setDrillDownPath] = React.useState<string[]>([])
+
+  // rerender-derived-state-no-effect: Derive currentLevelItems during render, not effects
+  const currentLevelItems = React.useMemo(() => {
+    if (activeListId === "preset-provinces") {
+      if (drillDownPath.length === 0) {
+        return CHINA_REGIONS.map(r => r.name)
+      } else if (drillDownPath.length === 1) {
+        const province = provinceMap.get(drillDownPath[0])
+        return province?.children?.map(c => c.name) || []
+      } else if (drillDownPath.length === 2) {
+        const province = provinceMap.get(drillDownPath[0])
+        const cityMap = new Map(province?.children?.map(c => [c.name, c]) || [])
+        const city = cityMap.get(drillDownPath[1])
+        return city?.children?.map(co => co.name) || []
+      }
+      return []
+    } else {
+      return activeList.items
+    }
+  }, [activeListId, activeList.items, drillDownPath])
+
+  React.useEffect(() => {
+    if (activeListId !== "preset-provinces" && drillDownPath.length > 0) {
+      setDrillDownPath([])
+    }
+  }, [activeListId, drillDownPath.length])
+
+  // rerender-functional-setstate: Memoize lang toggle
+  const toggleLang = React.useCallback(() => {
+    setLang(prev => prev === "zh-CN" ? "en" : "zh-CN")
+  }, [setLang])
+
+  // PERF-002: useCallback for fetch function
+>>>>>>> origin/trae/solo-agent-1RTvd8
   const fetchDestinationDetails = React.useCallback(async (winnerName: string) => {
     setDestinationDetails(null)
     setIsLoadingDetails(true)
@@ -85,7 +142,7 @@ export default function Page() {
         title={t.title}
         shortTitle={t.shortTitle}
         lang={lang}
-        onLangToggle={() => setLang(lang === "zh-CN" ? "en" : "zh-CN")}
+        onLangToggle={toggleLang}
       >
         <SettingsSheet
           t={t}

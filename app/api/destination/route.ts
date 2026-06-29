@@ -1,11 +1,23 @@
-// app/api/destination/route.ts v3.4.0
+// app/api/destination/route.ts v3.5.0
 import { GoogleGenAI, Type } from "@google/genai"
 import { NextRequest, NextResponse } from "next/server"
 
-// Rate limiting - simple in-memory store (use Redis in production)
+// server-hoist-static-io: Hoist static I/O to module level for reuse across requests
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
-const RATE_LIMIT = 10 // requests per minute
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
+const RATE_LIMIT = 10
+const RATE_LIMIT_WINDOW = 60 * 1000
+
+// server-cache-react: Cache the AI client instance at module level
+let aiClient: GoogleGenAI | null = null
+
+function getAIClient(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) return null
+  if (!aiClient) {
+    aiClient = new GoogleGenAI({ apiKey })
+  }
+  return aiClient
+}
 
 function getRateLimitKey(ip: string): string {
   return ip
@@ -31,10 +43,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get client IP for rate limiting
     const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
 
-    // Check rate limit
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
         { error: "请求过于频繁，请稍后再试" },
@@ -52,19 +62,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Sanitize input - limit length and remove dangerous characters
     const sanitizedLocation = location.slice(0, 100).replace(/[<>\"\'`;]/g, "")
 
-    const apiKey = process.env.GEMINI_API_KEY
-
-    if (!apiKey) {
+    const ai = getAIClient()
+    if (!ai) {
       return NextResponse.json(
         { error: "服务器配置错误" },
         { status: 500 }
       )
     }
-
-    const ai = new GoogleGenAI({ apiKey })
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",

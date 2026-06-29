@@ -13,6 +13,7 @@ interface WheelProps {
   spinningText: string
 }
 
+<<<<<<< HEAD
 // Color palette for items
 const ITEM_COLORS = [
   "from-rose-500/20 to-rose-600/10 border-rose-500/30",
@@ -33,6 +34,106 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
   const gridRef = React.useRef<HTMLDivElement>(null)
   const itemRefs = React.useRef<(HTMLDivElement | null)[]>([])
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+=======
+// rendering-hoist-jsx: Hoist static constants outside component
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(142, 71%, 45%)",
+  "hsl(38, 92%, 50%)",
+  "hsl(280, 80%, 55%)",
+  "hsl(0, 84%, 60%)",
+  "hsl(199, 89%, 48%)",
+  "hsl(340, 82%, 52%)",
+  "hsl(160, 70%, 45%)",
+] as const
+
+interface WheelSegment {
+  path: string
+  text: string
+  color: string
+  textX: number
+  textY: number
+  textRotation: number
+}
+
+// js-cache-function-results: Cache segment generation results
+const segmentCache = new Map<string, WheelSegment[]>()
+
+function generateWheelSegments(items: string[]): WheelSegment[] {
+  if (items.length === 0) return []
+  const cacheKey = items.join("|")
+  const cached = segmentCache.get(cacheKey)
+  if (cached) return cached
+
+  const segmentAngle = 360 / items.length
+  const result = items.map((item, index) => {
+    const startAngle = index * segmentAngle - 90
+    const endAngle = startAngle + segmentAngle
+    const startRad = (startAngle * Math.PI) / 180
+    const endRad = (endAngle * Math.PI) / 180
+    const x1 = 50 + 48 * Math.cos(startRad)
+    const y1 = 50 + 48 * Math.sin(startRad)
+    const x2 = 50 + 48 * Math.cos(endRad)
+    const y2 = 50 + 48 * Math.sin(endRad)
+    const largeArc = segmentAngle > 180 ? 1 : 0
+    const pathD = `M 50 50 L ${x1} ${y1} A 48 48 0 ${largeArc} 1 ${x2} ${y2} Z`
+    const midAngle = ((startAngle + endAngle) / 2) * (Math.PI / 180)
+    const textX = 50 + 32 * Math.cos(midAngle)
+    const textY = 50 + 32 * Math.sin(midAngle)
+    const textRotation = (startAngle + endAngle) / 2 + 90
+
+    return {
+      path: pathD,
+      text: item.length > 6 ? item.slice(0, 6) + "…" : item,
+      color: COLORS[index % COLORS.length],
+      textX,
+      textY,
+      textRotation,
+    }
+  })
+
+  if (segmentCache.size > 50) {
+    segmentCache.clear()
+  }
+  segmentCache.set(cacheKey, result)
+  return result
+}
+
+// rerender-memo: Wrap with React.memo
+export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) {
+  const [isSpinning, setIsSpinning] = React.useState(false)
+  const rotation = useMotionValue(0)
+  const rotated = useTransform(rotation, (v) => `${v}deg`)
+  const animationRef = React.useRef<ReturnType<typeof animate> | null>(null)
+
+  // rerender-simple-expression-in-memo: Memoize only when computation is non-trivial
+  const segments = React.useMemo(
+    () => generateWheelSegments(items),
+    [items]
+  )
+
+  const segmentAngle = items.length > 0 ? 360 / items.length : 0
+
+  // rerender-move-effect-to-event: Spin logic in event handler, not effect
+  const handleSpin = React.useCallback(() => {
+    if (isSpinning || items.length === 0) return
+    setIsSpinning(true)
+
+    const randomIndex = Math.floor(Math.random() * items.length)
+    const targetAngle = 360 * 5 + (360 - (randomIndex * segmentAngle + segmentAngle / 2))
+    const currentRotation = rotation.get()
+    const targetRotation = currentRotation + targetAngle
+
+    animationRef.current = animate(rotation, targetRotation, {
+      duration: 4,
+      ease: [0.22, 1, 0.36, 1],
+      onComplete: () => {
+        setIsSpinning(false)
+        onSpinEnd(items[randomIndex])
+      },
+    })
+  }, [isSpinning, items, onSpinEnd, rotation, segmentAngle])
+>>>>>>> origin/trae/solo-agent-1RTvd8
 
   // Cleanup on unmount
   React.useEffect(() => {
@@ -41,6 +142,7 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
     }
   }, [])
 
+<<<<<<< HEAD
   // Scroll highlighted item into view
   React.useEffect(() => {
     if (highlightIndex !== null && itemRefs.current[highlightIndex]) {
@@ -126,6 +228,9 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
     timerRef.current = setTimeout(tick, 50)
   }, [isSpinning, items, onSpinEnd, soundEnabled])
 
+=======
+  // rendering-conditional-render: Use ternary, not && for conditionals
+>>>>>>> origin/trae/solo-agent-1RTvd8
   if (items.length === 0) {
     return (
       <div className="relative flex items-center justify-center w-full max-w-4xl h-64 rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20">
@@ -137,6 +242,7 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
   }
 
   return (
+<<<<<<< HEAD
     <div className="relative w-full max-w-5xl mx-auto">
       {/* Sound toggle */}
       <div className="absolute top-2 right-2 z-30">
@@ -152,6 +258,55 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
       {/* Grid of items */}
       <div
         ref={gridRef}
+=======
+    <div className="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
+        <div
+          className="w-0 h-0"
+          style={{
+            borderLeft: "12px solid transparent",
+            borderRight: "12px solid transparent",
+            borderTop: "20px solid hsl(var(--primary))",
+          }}
+        />
+      </div>
+
+      {/* rendering-animate-svg-wrapper: Animate div wrapper, not SVG element */}
+      <motion.div
+        style={{ rotate: rotated }}
+        className="w-full h-full rounded-full border-8 border-primary/80 shadow-2xl overflow-hidden"
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          {segments.map((segment, index) => (
+            <g key={index}>
+              <path
+                d={segment.path}
+                fill={segment.color}
+                stroke="hsl(var(--background))"
+                strokeWidth="0.5"
+              />
+              <text
+                x={segment.textX}
+                y={segment.textY}
+                fill="white"
+                fontSize={items.length > 8 ? "3" : "3.8"}
+                fontWeight="600"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform={`rotate(${segment.textRotation} ${segment.textX} ${segment.textY})`}
+                className="select-none drop-shadow-sm"
+              >
+                {segment.text}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </motion.div>
+
+      <button
+        onClick={handleSpin}
+        disabled={isSpinning}
+>>>>>>> origin/trae/solo-agent-1RTvd8
         className={cn(
           "wheel-grid relative w-full max-h-[60vh] overflow-auto rounded-2xl border border-border/50 bg-muted/10 p-3",
           isSpinning && "ring-2 ring-primary/50"
@@ -227,4 +382,4 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
       </div>
     </div>
   )
-}
+})

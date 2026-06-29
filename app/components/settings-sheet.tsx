@@ -87,7 +87,8 @@ interface SettingsSheetProps {
   chinaRegions: Region[]
 }
 
-export function SettingsSheet({
+// rerender-memo: Wrap with React.memo to prevent unnecessary re-renders
+export const SettingsSheet = React.memo(function SettingsSheet({
   t,
   lists,
   activeListId,
@@ -113,26 +114,50 @@ export function SettingsSheet({
     setTempListName(activeList.name)
   }, [activeList.name])
 
-  const handleAdd = () => {
-    if (newItem.trim()) {
-      onAdd(newItem.trim())
-      setNewItem("")
-    }
-  }
+  // rerender-functional-setstate: Use functional setState for stable callbacks
+  const handleAdd = React.useCallback(() => {
+    setNewItem(prev => {
+      const trimmed = prev.trim()
+      if (trimmed) {
+        onAdd(trimmed)
+      }
+      return ""
+    })
+  }, [onAdd])
 
-  const handleCreateList = () => {
-    if (newListName.trim()) {
-      onCreateList(newListName.trim())
-      setNewListName("")
-    }
-  }
+  const handleCreateList = React.useCallback(() => {
+    setNewListName(prev => {
+      const trimmed = prev.trim()
+      if (trimmed) {
+        onCreateList(trimmed)
+      }
+      return ""
+    })
+  }, [onCreateList])
 
-  const handleRenameList = () => {
-    if (tempListName.trim()) {
-      onUpdateListName(tempListName.trim())
-      setEditingListName(false)
-    }
-  }
+  const handleRenameList = React.useCallback(() => {
+    setTempListName(prev => {
+      const trimmed = prev.trim()
+      if (trimmed) {
+        onUpdateListName(trimmed)
+        setEditingListName(false)
+      }
+      return prev
+    })
+  }, [onUpdateListName])
+
+  const handleCancelRename = React.useCallback(() => {
+    setEditingListName(false)
+    setTempListName(activeList.name)
+  }, [activeList.name])
+
+  const handleKeyDownAdd = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleAdd()
+  }, [handleAdd])
+
+  const handleKeyDownCreate = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleCreateList()
+  }, [handleCreateList])
 
   return (
     <Sheet>
@@ -270,10 +295,7 @@ export function SettingsSheet({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => {
-                              setEditingListName(false)
-                              setTempListName(activeList.name)
-                            }}
+                            onClick={handleCancelRename}
                             className="h-8 w-8 p-0"
                           >
                             <X className="h-4 w-4" />
@@ -324,7 +346,7 @@ export function SettingsSheet({
                       <Input
                         value={newItem}
                         onChange={(e) => setNewItem(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                        onKeyDown={handleKeyDownAdd}
                         placeholder={t.addItemPlaceholder}
                         className="h-9"
                       />
@@ -369,7 +391,7 @@ export function SettingsSheet({
                   <Input
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
+                    onKeyDown={handleKeyDownCreate}
                     placeholder={t.listNamePlaceholder}
                     className="h-9"
                   />
@@ -385,4 +407,4 @@ export function SettingsSheet({
       </SheetContent>
     </Sheet>
   )
-}
+})
