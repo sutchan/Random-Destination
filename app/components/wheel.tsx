@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { motion, AnimatePresence } from "motion/react"
+import { motion } from "motion/react"
 import { cn } from "@/app/lib/utils"
 import { Play, Volume2, VolumeX } from "lucide-react"
 import { playTick, playSlowTick, playWin, playClick } from "@/app/lib/sounds"
@@ -28,7 +28,7 @@ const ITEM_COLORS = [
 export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) {
   const [isSpinning, setIsSpinning] = React.useState(false)
   const [highlightIndex, setHighlightIndex] = React.useState<number | null>(null)
-  const [winner, setWinner] = React.useState<string | null>(null)
+  const [winnerIndex, setWinnerIndex] = React.useState<number | null>(null)
   const [soundEnabled, setSoundEnabled] = React.useState(true)
   const gridRef = React.useRef<HTMLDivElement>(null)
   const itemRefs = React.useRef<(HTMLDivElement | null)[]>([])
@@ -45,19 +45,19 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
   React.useEffect(() => {
     if (highlightIndex !== null && itemRefs.current[highlightIndex]) {
       itemRefs.current[highlightIndex]?.scrollIntoView({
-        behavior: "smooth",
+        behavior: isSpinning ? "auto" : "smooth",
         block: "center",
         inline: "center",
       })
     }
-  }, [highlightIndex])
+  }, [highlightIndex, isSpinning])
 
   const handleSpin = React.useCallback(() => {
     if (isSpinning || items.length === 0) return
     if (soundEnabled) playClick()
 
     setIsSpinning(true)
-    setWinner(null)
+    setWinnerIndex(null)
 
     const totalItems = items.length
     // Pick random winner
@@ -81,7 +81,7 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
       if (!phase) {
         // Done!
         setHighlightIndex(winnerIndex)
-        setWinner(items[winnerIndex])
+        setWinnerIndex(winnerIndex)
         setIsSpinning(false)
         if (soundEnabled) playWin()
         onSpinEnd(items[winnerIndex])
@@ -162,7 +162,7 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
           {items.map((item, index) => {
             const colorClass = ITEM_COLORS[index % ITEM_COLORS.length]
             const isHighlighted = highlightIndex === index
-            const isWinner = winner !== null && items[index] === winner
+            const isWinner = winnerIndex !== null && index === winnerIndex
 
             return (
               <div
@@ -179,17 +179,9 @@ export function Wheel({ items, onSpinEnd, spinText, spinningText }: WheelProps) 
                       : cn(colorClass, "text-muted-foreground hover:text-foreground")
                 )}
               >
-                <AnimatePresence>
-                  {isHighlighted && !isWinner && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute inset-0 bg-primary/10 rounded-lg"
-                    />
-                  )}
-                </AnimatePresence>
+                {isHighlighted && !isWinner && (
+                  <div className="absolute inset-0 bg-primary/10 rounded-lg transition-opacity duration-150" />
+                )}
                 <span className="relative z-[1] truncate block">
                   {item.length > 6 ? item.slice(0, 5) + "…" : item}
                 </span>
