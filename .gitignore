@@ -1,11 +1,6 @@
 node_modules/
 .next/
 coverage/
-/.codebuddy
-.pnpm-store/
-/.workbuddy
-.workbuddy\
-/docs
 .DS_Store
 *.log
 .env*

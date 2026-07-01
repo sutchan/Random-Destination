@@ -2,12 +2,13 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { Wheel } from "@/app/components/wheel"
 import { AppHeader } from "@/app/components/app-header"
 import { useDestination } from "@/app/hooks/use-destination"
 import { CHINA_REGIONS } from "@/app/lib/china-data"
+import { Button } from "@/app/components/ui/button"
+import { ChevronRight, RotateCcw } from "lucide-react"
 import en from "@/app/locales/en"
 import zhCN from "@/app/locales/zh-CN"
 
@@ -84,23 +85,15 @@ export default function Page() {
     setIsLoadingDetails(true)
     setError(null)
 
-    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      setIsLoadingDetails(false)
-      setDestinationDetails({
-        intro: lang === 'zh-CN' ? "探索未知的美好目的地！" : "Discover your next great destination!",
-        link: lang === 'zh-CN' ? "https://zh.wikipedia.org" : "https://www.wikipedia.org"
-      })
-      return
-    }
-
     try {
+      // SEC-001: Use API route instead of direct Gemini API call
       const response = await fetch("/api/destination", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          location: winnerName,
+          location: [...drillDownPath, winnerName].join(" "),
           language: lang,
         }),
       })
@@ -113,32 +106,51 @@ export default function Page() {
       const data = await response.json()
       setDestinationDetails(data)
     } catch (e) {
+      // SEC-004: Conditional logging for production safety
       if (process.env.NODE_ENV === "development") {
         console.error("Failed to fetch destination details", e)
       }
-      // 降级：提供默认描述
-      setDestinationDetails({
-        intro: lang === 'zh-CN' ? "探索未知的美好目的地！" : "Discover your next great destination!",
-        link: lang === 'zh-CN' ? "https://zh.wikipedia.org" : "https://www.wikipedia.org"
-      })
+      setError(lang === "zh-CN" ? "获取目的地详情失败。" : "Failed to fetch details.")
     } finally {
       setIsLoadingDetails(false)
     }
-  }, [lang])
+  }, [drillDownPath, lang])
 
+  // PERF-002: useCallback for spin handler
   const handleSpinEnd = React.useCallback(async (winnerName: string) => {
     setWinner(winnerName)
     addHistory(winnerName)
 
+    // PERF-004: Dynamic import confetti to reduce initial bundle size
     const confetti = (await import("canvas-confetti")).default
     confetti({
-      particleCount: 150,
-      spread: 80,
+      particleCount: 100,
+      spread: 70,
       origin: { y: 0.6 }
     })
 
-    fetchDestinationDetails(winnerName).catch(() => {})
+    fetchDestinationDetails(winnerName).catch(() => {
+      // Error already handled in fetchDestinationDetails
+    })
   }, [addHistory, fetchDestinationDetails])
+
+  // PERF-002: useCallback for drill down handler
+  const handleDrillDown = React.useCallback(() => {
+    if (winner) {
+      setDrillDownPath(prev => [...prev, winner])
+      setWinner(null)
+      setDestinationDetails(null)
+    }
+  }, [winner])
+
+  // PERF-002: useCallback for reset handler
+  const resetDrillDown = React.useCallback(() => {
+    setDrillDownPath([])
+    setWinner(null)
+    setDestinationDetails(null)
+  }, [])
+
+  const canDrillDown = activeListId === "preset-provinces" && drillDownPath.length < 2 && currentLevelItems.length > 0
 
   return (
     <div id="app-container" className="min-h-screen bg-background text-foreground flex flex-col">
@@ -174,26 +186,37 @@ export default function Page() {
           }}
           onUpdateListName={(name) => setLists(lists.map(l => l.id === activeListId ? { ...l, name } : l))}
           chinaRegions={CHINA_REGIONS}
+          triggerId="btn-settings"
         />
       </AppHeader>
 
-      <main id="main-content" className="flex-1 container mx-auto px-4 py-6 md:py-10 flex flex-col items-center gap-6">
-        <div id="wheel-wrapper" className="w-full max-w-5xl flex flex-col items-center space-y-6">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center gap-8">
+        <div id="wheel-wrapper" className="w-full max-w-4xl flex flex-col items-center justify-center space-y-8">
+          {drillDownPath.length > 0 && (
+            <div id="drill-down-nav" className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
+              <Button variant="ghost" size="sm" className="h-6 px-2" onClick={resetDrillDown}>
+                <RotateCcw className="w-3 h-3 mr-1" />
+                {lang === "zh-CN" ? "重置" : "Reset"}
+              </Button>
+              {drillDownPath.map((name, i) => (
+                <React.Fragment key={i}>
+                  <ChevronRight className="w-3 h-3" />
+                  <span className={i === drillDownPath.length - 1 ? "text-foreground" : ""}>{name}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+
           <Wheel
-            key={`${activeListId}`}
-            items={activeList.items}
+            key={`${activeListId}-${drillDownPath.join("-")}`}
+            items={currentLevelItems}
             onSpinEnd={handleSpinEnd}
             spinText={t.startSpin}
             spinningText={t.spinning}
           />
 
           {winner && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="w-full max-w-md mx-auto"
-            >
+            <div className="flex flex-col items-center gap-4 w-full max-w-md">
               <WinnerCard
                 t={t}
                 winner={winner}
@@ -205,14 +228,25 @@ export default function Page() {
                 error={error}
                 onRetry={() => winner && fetchDestinationDetails(winner)}
               />
-            </motion.div>
+
+              {canDrillDown && (
+                <Button
+                  id="drill-down-button"
+                  onClick={handleDrillDown}
+                  className="w-full py-6 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all"
+                >
+                  {drillDownPath.length === 0 ? (lang === "zh-CN" ? "进入市级抽签" : "Spin for City") : (lang === "zh-CN" ? "进入县级抽签" : "Spin for County")}
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </main>
 
       <footer id="app-footer" className="py-6 border-t text-center text-xs text-muted-foreground">
         <div className="container mx-auto px-4">
-          <p>© 2026 Random Destination Wheel v3.5.0 | Data v1.4.0. All rights reserved.</p>
+          <p>© 2026 Random Destination Wheel v3.4.0 | Data v1.4.0. All rights reserved.</p>
         </div>
       </footer>
     </div>

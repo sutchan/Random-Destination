@@ -56,8 +56,11 @@ export const WinnerCard = React.memo(function WinnerCard({
   }, [toggleFavorite, winner])
 
   return (
-    <Card className="w-full max-w-md overflow-hidden border-primary/30 shadow-lg">
-      <CardHeader className="text-center bg-gradient-to-b from-primary/10 to-transparent border-b">
+    <Card id="winner-card" className="w-full max-w-md overflow-hidden border-primary/30 shadow-lg backdrop-blur-sm bg-card/80">
+      <CardHeader className="text-center bg-gradient-to-b from-primary/10 to-transparent border-b relative overflow-hidden">
+        {/* Decorative compass element */}
+        <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full border border-primary/20 opacity-30" />
+        <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full border border-primary/30 opacity-40" />
         <div className="mx-auto mb-2 flex items-center justify-center gap-2">
           <Trophy className="h-5 w-5 text-primary" />
           <Badge variant="secondary">{t.spinResult}</Badge>
@@ -65,6 +68,7 @@ export const WinnerCard = React.memo(function WinnerCard({
         <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
           {winner}
           <Button
+            id="btn-favorite-winner"
             variant="ghost"
             size="icon"
             onClick={handleToggleFavorite}
@@ -116,7 +120,7 @@ export const WinnerCard = React.memo(function WinnerCard({
               <p className="text-sm leading-relaxed mb-3">
                 {destinationDetails.intro}
               </p>
-              <Button variant="outline" size="sm" asChild className="gap-2">
+              <Button id="btn-view-details" variant="outline" size="sm" asChild className="gap-2">
                 <a href={destinationDetails.link} target="_blank" rel="noopener noreferrer">
                   {t.viewDetails}
                   <ExternalLink className="h-3.5 w-3.5" />

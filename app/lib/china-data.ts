@@ -3,32 +3,6 @@ export interface Region {
   children?: Region[];
 }
 
-/**
- * Flatten all leaf nodes from the region tree.
- * For provinces with children, returns the children (cities/districts).
- * For standalone entries, returns the entry itself.
- */
-export function flattenAllRegions(regions: Region[]): string[] {
-  const result: string[] = []
-  for (const r of regions) {
-    if (r.children && r.children.length > 0) {
-      for (const c of r.children) {
-        if (c.children && c.children.length > 0) {
-          // 3rd level (counties under municipality)
-          for (const gc of c.children) {
-            result.push(gc.name)
-          }
-        } else {
-          result.push(c.name)
-        }
-      }
-    } else {
-      result.push(r.name)
-    }
-  }
-  return result
-}
-
 export const CHINA_REGIONS: Region[] = [
   { name: '北京', children: [{ name: '东城区' }, { name: '西城区' }, { name: '朝阳区' }, { name: '海淀区' }, { name: '丰台区' }, { name: '石景山区' }, { name: '通州区' }, { name: '昌平区' }, { name: '大兴区' }, { name: '顺义区' }] },
   { name: '天津', children: [{ name: '和平区' }, { name: '河东区' }, { name: '河西区' }, { name: '南开区' }, { name: '河北区' }, { name: '红桥区' }, { name: '滨海新区' }, { name: '武清区' }, { name: '宝坻区' }] },
