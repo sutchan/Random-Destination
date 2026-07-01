@@ -4,6 +4,7 @@ import * as React from "react"
 import { motion, useMotionValue, useTransform, animate } from "motion/react"
 import { cn } from "@/app/lib/utils"
 import { Play } from "lucide-react"
+import { playTick, playWin } from "@/app/lib/sounds"
 
 interface WheelProps {
   items: string[]
@@ -82,6 +83,7 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
   const rotation = useMotionValue(0)
   const rotated = useTransform(rotation, (v) => `${v}deg`)
   const animationRef = React.useRef<ReturnType<typeof animate> | null>(null)
+  const tickIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
 
   // rerender-simple-expression-in-memo: Memoize only when computation is non-trivial
   const segments = React.useMemo(
@@ -101,11 +103,21 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
     const currentRotation = rotation.get()
     const targetRotation = currentRotation + targetAngle
 
+    // Sound: tick every ~150ms during spin
+    tickIntervalRef.current = setInterval(() => {
+      playTick()
+    }, 150)
+
     animationRef.current = animate(rotation, targetRotation, {
       duration: 4,
       ease: [0.22, 1, 0.36, 1],
       onComplete: () => {
+        if (tickIntervalRef.current) {
+          clearInterval(tickIntervalRef.current)
+          tickIntervalRef.current = null
+        }
         setIsSpinning(false)
+        playWin()
         onSpinEnd(items[randomIndex])
       },
     })
@@ -114,6 +126,9 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
   React.useEffect(() => {
     return () => {
       animationRef.current?.stop()
+      if (tickIntervalRef.current) {
+        clearInterval(tickIntervalRef.current)
+      }
     }
   }, [])
 
@@ -129,8 +144,8 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
   }
 
   return (
-    <div className="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
+    <div id="wheel-container" className="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
+      <div id="wheel-pointer" className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
         <div
           className="w-0 h-0"
           style={{
@@ -143,12 +158,13 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
 
       {/* rendering-animate-svg-wrapper: Animate div wrapper, not SVG element */}
       <motion.div
+        id="wheel-outer"
         style={{ rotate: rotated }}
         className="w-full h-full rounded-full border-8 border-primary/80 shadow-2xl overflow-hidden"
       >
-        <svg viewBox="0 0 100 100" className="w-full h-full">
+        <svg id="wheel-spinning-part" viewBox="0 0 100 100" className="w-full h-full">
           {segments.map((segment, index) => (
-            <g key={index}>
+            <g key={index} id={`wheel-segment-${index}`}>
               <path
                 d={segment.path}
                 fill={segment.color}
@@ -174,6 +190,7 @@ export const Wheel = React.memo(function Wheel({ items, onSpinEnd, spinText, spi
       </motion.div>
 
       <button
+        id="btn-spin"
         onClick={handleSpin}
         disabled={isSpinning}
         className={cn(

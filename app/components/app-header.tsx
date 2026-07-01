@@ -4,6 +4,7 @@ import * as React from "react"
 import { Settings, Languages } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 import { Button } from "@/app/components/ui/button"
+import { ModeToggle } from "@/app/components/mode-toggle"
 
 interface AppHeaderProps {
   title: string
@@ -21,9 +22,9 @@ export function AppHeader({
   children,
 }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header id="app-header" className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+        <div id="logo-container" className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             {shortTitle.charAt(0)}
           </div>
@@ -36,6 +37,7 @@ export function AppHeader({
 
         <div className="flex items-center gap-2">
           <Button
+            id="btn-lang-toggle"
             variant="ghost"
             size="sm"
             onClick={onLangToggle}
@@ -44,6 +46,7 @@ export function AppHeader({
             <Languages className="h-4 w-4" />
             <span className="hidden sm:inline">{lang === "zh-CN" ? "中文" : "EN"}</span>
           </Button>
+          <ModeToggle />
           {children}
         </div>
       </div>
