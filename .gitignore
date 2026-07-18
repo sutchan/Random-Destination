@@ -9,3 +9,4 @@ coverage/
 public/workbox-*.js
 public/sw.js.map
 public/worker-*.js.map
+/.workbuddy
